@@ -1,0 +1,53 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "ui": "tui",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build", "db:generate"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": [".next/**", "!.next/cache/**", "./dist"]
+    },
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
+    "check-types": {
+      "dependsOn": ["^check-types"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "start:dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "db:generate": {
+      "cache": false,
+      "inputs": ["prisma/schema.prisma"],
+      "outputs": [
+        "node_modules/.prisma/client/index.d.ts",
+        "node_modules/.prisma/client/index.js",
+        "node_modules/.prisma/client/schema.prisma"
+      ]
+    },
+    "db:migrate-dev": {
+      "cache": false,
+      "inputs": ["prisma/schema.prisma"],
+      "outputs": ["prisma/migrations/**", "node_modules/.prisma/client/**"]
+    },
+    "db:migrate-deploy": {
+      "cache": false,
+      "inputs": ["prisma/schema.prisma"],
+      "outputs": []
+    },
+    "db:push": {
+      "cache": false,
+      "inputs": ["prisma/schema.prisma"],
+      "outputs": []
+    },
+    "db:studio": {
+      "cache": false,
+      "persistent": true
+    }
+  }
+}
