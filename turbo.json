@@ -24,7 +24,7 @@
     "start": {
       "cache": false,
       "persistent": true,
-      "dependsOn": ["build", "db:generate", "db:migrate-dev"]
+      "dependsOn": ["build", "db:generate", "db:migrate-deploy"]
     },
     "db:generate": {
       "cache": false,
