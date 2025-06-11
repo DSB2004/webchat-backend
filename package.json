@@ -4,8 +4,8 @@
   "scripts": {
     "start": "dotenv turbo run start",
     "build": "dotenv turbo run build",
-    "dev": "turbo run dev",
-    "start:dev": "turbo run start:dev",
+    "dev": "dotenv turbo run dev",
+    "start:dev": "dotenv turbo run start:dev",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
