@@ -56,6 +56,8 @@
         "@nestjs/core": "^11.0.1",
         "@nestjs/platform-express": "^11.0.1",
         "@webchat-backend/db": "workspace:*",
+        "@webchat-backend/hash": "workspace:*",
+        "@webchat-backend/jwt": "workspace:*",
         "@webchat-backend/redis": "workspace:*",
         "reflect-metadata": "^0.2.2",
         "rxjs": "^7.8.1",
@@ -142,10 +144,10 @@
         "typescript": "^5",
       },
     },
-    "packages/redis": {
-      "name": "@webchat-backend/redis",
+    "packages/hash": {
+      "name": "@webchat-backend/hash",
       "dependencies": {
-        "ioredis": "^5.6.1",
+        "bcrypt": "^6.0.0",
         "tsup": "^8.5.0",
       },
       "devDependencies": {
@@ -155,8 +157,25 @@
         "typescript": "^5",
       },
     },
-    "packages/utils": {
-      "name": "utils",
+    "packages/jwt": {
+      "name": "@webchat-backend/jwt",
+      "dependencies": {
+        "jose": "^6.0.11",
+        "tsup": "^8.5.0",
+      },
+      "devDependencies": {
+        "@types/bun": "latest",
+      },
+      "peerDependencies": {
+        "typescript": "^5",
+      },
+    },
+    "packages/redis": {
+      "name": "@webchat-backend/redis",
+      "dependencies": {
+        "ioredis": "^5.6.1",
+        "tsup": "^8.5.0",
+      },
       "devDependencies": {
         "@types/bun": "latest",
       },
@@ -686,6 +705,10 @@
 
     "@webchat-backend/db": ["@webchat-backend/db@workspace:packages/db"],
 
+    "@webchat-backend/hash": ["@webchat-backend/hash@workspace:packages/hash"],
+
+    "@webchat-backend/jwt": ["@webchat-backend/jwt@workspace:packages/jwt"],
+
     "@webchat-backend/redis": ["@webchat-backend/redis@workspace:packages/redis"],
 
     "@xhmikosr/archive-type": ["@xhmikosr/archive-type@7.0.0", "", { "dependencies": { "file-type": "^19.0.0" } }, "sha512-sIm84ZneCOJuiy3PpWR5bxkx3HaNt1pqaN+vncUBZIlPZCq8ASZH+hBVdu5H8znR7qYC6sKwx+ie2Q7qztJTxA=="],
@@ -773,6 +796,8 @@
     "bare-events": ["bare-events@2.5.4", "", {}, "sha512-+gFfDkR8pj4/TrWCGUGWmJIkBwuxPS5F+a5yWjOHQt2hHvNZd5YLzadjmDUtFmMM4y429bnKLa8bYBMHcYdnQA=="],
 
     "base64-js": ["base64-js@1.5.1", "", {}, "sha512-AKpaYlHn8t4SVbOHCy+b5+KKgvR4vrsD8vbvrbiQJps7fKDTkjkDry6ji0rUJjC0kzbNePLwzxq8iypo41qeWA=="],
+
+    "bcrypt": ["bcrypt@6.0.0", "", { "dependencies": { "node-addon-api": "^8.3.0", "node-gyp-build": "^4.8.4" } }, "sha512-cU8v/EGSrnH+HnxV2z0J7/blxH8gq7Xh2JFT6Aroax7UohdmiJJlxApMxtKfuI7z68NvvVcmR78k2LbT6efhRg=="],
 
     "bin-version": ["bin-version@6.0.0", "", { "dependencies": { "execa": "^5.0.0", "find-versions": "^5.0.0" } }, "sha512-nk5wEsP4RiKjG+vF+uG8lFsEn4d7Y6FVDamzzftSunXOoOcOOkzcWdKVlGgFFwlUQCj63SgnUkLLGF8v7lufhw=="],
 
@@ -1250,6 +1275,8 @@
 
     "jiti": ["jiti@2.4.2", "", { "bin": { "jiti": "lib/jiti-cli.mjs" } }, "sha512-rg9zJN+G4n2nfJl5MW3BMygZX56zKPNVEYYqq7adpmMh4Jn2QNEwhvQlFy6jPVdcod7txZtKHWnyZiA3a0zP7A=="],
 
+    "jose": ["jose@6.0.11", "", {}, "sha512-QxG7EaliDARm1O1S8BGakqncGT9s25bKL1WSf6/oa17Tkqwi8D2ZNglqCF+DsYF88/rV66Q/Q2mFAy697E1DUg=="],
+
     "joycon": ["joycon@3.1.1", "", {}, "sha512-34wB/Y7MW7bzjKRjUKTa46I2Z7eV62Rkhva+KkopW7Qvv/OSWBqvkSY7vusOPrNuZcUG3tApvdVgNB8POj3SPw=="],
 
     "js-tokens": ["js-tokens@4.0.0", "", {}, "sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ=="],
@@ -1372,7 +1399,11 @@
 
     "node-abort-controller": ["node-abort-controller@3.1.1", "", {}, "sha512-AGK2yQKIjRuqnc6VkX2Xj5d+QW8xZ87pa1UK6yA6ouUyuxfHuMP6umE5QK7UmTeOAymo+Zx1Fxiuw9rVx8taHQ=="],
 
+    "node-addon-api": ["node-addon-api@8.3.1", "", {}, "sha512-lytcDEdxKjGJPTLEfW4mYMigRezMlyJY8W4wxJK8zE533Jlb8L8dRuObJFWg2P+AuOIxoCgKF+2Oq4d4Zd0OUA=="],
+
     "node-emoji": ["node-emoji@1.11.0", "", { "dependencies": { "lodash": "^4.17.21" } }, "sha512-wo2DpQkQp7Sjm2A0cq+sN7EHKO6Sl0ctXeBdFZrL9T9+UywORbufTcTZxom8YqpLQt/FqNMUkOpkZrJVYSKD3A=="],
+
+    "node-gyp-build": ["node-gyp-build@4.8.4", "", { "bin": { "node-gyp-build": "bin.js", "node-gyp-build-optional": "optional.js", "node-gyp-build-test": "build-test.js" } }, "sha512-LA4ZjwlnUblHVgq0oBF3Jl/6h/Nvs5fzBLwdEF4nuxnFdsfajde4WfxtJr3CaiH+F6ewcIB/q4jQ4UzPyid+CQ=="],
 
     "node-int64": ["node-int64@0.4.0", "", {}, "sha512-O5lz91xSOeoXP6DulyHfllpq+Eg00MWitZIbtPfoSEvqIHdl5gfcY6hYzDWnj0qD5tz52PI08u9qUvSVeUBeHw=="],
 
@@ -1723,8 +1754,6 @@
     "uri-js": ["uri-js@4.4.1", "", { "dependencies": { "punycode": "^2.1.0" } }, "sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg=="],
 
     "util-deprecate": ["util-deprecate@1.0.2", "", {}, "sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw=="],
-
-    "utils": ["utils@workspace:packages/utils"],
 
     "v8-compile-cache-lib": ["v8-compile-cache-lib@3.0.1", "", {}, "sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg=="],
 

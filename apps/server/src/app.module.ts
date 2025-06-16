@@ -1,13 +1,10 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
-import { AuthController } from './auth/auth.controller';
 import { AuthModule } from './auth/auth.module';
+import { SharedModule } from './shared/shared.module';
+import { ChatroomModule } from './chatroom/chatroom.module';
 
 @Module({
-  imports: [UserModule, AuthModule],
-  controllers: [AppController, AuthController],
-  providers: [AppService],
+  imports: [UserModule, AuthModule, SharedModule, ChatroomModule],
 })
 export class AppModule {}

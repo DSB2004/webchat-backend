@@ -52,6 +52,10 @@
       "outputs": [],
       "dependsOn": ["db:migrate-deploy"]
     },
+    "db:format": {
+      "cache": false,
+      "inputs": ["prisma/schema.prisma"]
+    },
     "db:studio": {
       "cache": false,
       "persistent": true

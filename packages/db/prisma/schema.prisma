@@ -7,18 +7,156 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
+enum LoginType{
+  EMAIL
+  GOOGLE
+}
 model Auth {
   id         String  @id @default(uuid())
   email      String  @unique
   password   String
   isVerified Boolean @default(false)
+  loginType  LoginType
   user       User?
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model User {
-  id       String @id @default(uuid())
-  username String
-  email    String @unique
-  authId   String @unique
-  auth     Auth   @relation(fields: [authId], references: [id])
+  id         String   @id @default(uuid())
+  username   String
+  email      String   @unique
+  authId     String   @unique
+  auth       Auth     @relation(fields: [authId], references: [id])
+
+  profilePic String?  @db.Text
+  description String? @db.Text
+  status     String?  @db.Text  
+
+
+  chatroomCreated Chatroom[] @relation("CreatedByRelation")
+  adminIn         Chatroom[] @relation("AdminRelation")
+  participantIn   Chatroom[] @relation("ParticipantRelation")
+
+  blockedUsers   Block[] @relation("Blocker")
+  blockedByUsers Block[] @relation("Blocked")
+
+  messages    Message[]
+  messageStatus      Status[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+
+model Block {
+  id         String   @id @default(uuid())
+  blocker    User     @relation("Blocker", fields: [blockerId], references: [id])
+  blockerId  String
+
+  blocked    User     @relation("Blocked", fields: [blockedId], references: [id])
+  blockedId  String
+
+  @@unique([blockedId,blockerId])
+
+  createdAt  DateTime @default(now())
+}
+
+
+enum ChatroomType{
+  PERSONAL
+  GROUP
+}
+
+model Chatroom{
+  id String @id @default(uuid())
+  name String?
+  description String?
+  profilePic String?
+  type ChatroomType
+
+  messages Message[]
+
+  createdBy    User      @relation("CreatedByRelation", fields: [createdById], references: [id])
+  createdById  String
+  admins       User[]    @relation("AdminRelation")
+  participants User[]    @relation("ParticipantRelation")
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt 
+}
+
+
+enum MessageType{
+  TEXT
+  AUDIO 
+}
+
+model Message {
+  id         String   @id @default(uuid())
+
+  author     User     @relation(fields: [authorId], references: [id])
+  authorId   String
+
+  chatroom   Chatroom @relation(fields: [chatroomId], references: [id])
+  chatroomId String
+
+  type MessageType
+  content    String   @db.Text
+
+  attachments Attachment[]
+  status Status[]
+  isUpdated Boolean  @default(false)
+  isDeleted Boolean  @default(false)
+  isStarred Boolean  @default(false)
+  isPined Boolean  @default(false)
+  
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+
+enum StatusType{
+  SEEN
+  SENT
+  DELIVERIED
+  PENDING
+}
+
+model Status{
+   id         String   @id @default(uuid())
+   messageId  String  
+   message    Message  @relation(fields: [messageId], references: [id])
+
+   userId  String  
+   user    User  @relation(fields: [userId], references: [id])
+  
+  @@unique([messageId,userId])
+  status    StatusType 
+
+
+  
+}
+
+
+enum AttachmentType{
+  DOCUMENTS
+  IMAGE
+  VIDEO
+  AUDIO
+}
+model Attachment{
+  id String @id @default(uuid())
+  message Message @relation(fields: [messageId], references: [id])
+  messageId String 
+
+  name String 
+  src String @db.Text
+
+  type AttachmentType
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }

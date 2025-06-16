@@ -13,7 +13,8 @@
     "db:migrate-dev": "dotenv turbo run db:migrate-dev --filter=@webchat-backend/db",
     "db:migrate-deploy": " dotenv turbo run db:migrate-deploy --filter=@webchat-backend/db",
     "db:push": "dotenv turbo run db:push --filter=@webchat-backend/db",
-    "db:studio": "dotenv turbo run db:studio --filter=@webchat-backend/db"
+    "db:studio": "dotenv turbo run db:studio --filter=@webchat-backend/db",
+    "db:format": "dotenv turbo run db:format"
   },
   "devDependencies": {
     "dotenv-cli": "^8.0.0",

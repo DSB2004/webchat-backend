@@ -1,4 +1,4 @@
-# jwt
+# hash
 
 To install dependencies:
 
