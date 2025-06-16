@@ -71,7 +71,11 @@ export class ChatroomService {
     type: 'GROUP' | 'CHAT';
   }) {
     try {
-      const participantsList=await db.user.findMany
+      const participantsList=await db.user.findMany({where:{
+        id:{
+          
+        }
+      }})
     } catch (err) {
       return { status: 500, message: 'Internal Server Error' };
     }
