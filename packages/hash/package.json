@@ -11,6 +11,7 @@
     "clean": "rm -rf dist .turbo node_modules"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
     "@types/bun": "latest"
   },
   "peerDependencies": {
