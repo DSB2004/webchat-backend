@@ -91,7 +91,7 @@ export class UserService {
 
   async list({ email }: { email: string }) {
     try {
-      const user = db.user.findUnique({
+      const user = await db.user.findUnique({
         where: {
           email,
         },

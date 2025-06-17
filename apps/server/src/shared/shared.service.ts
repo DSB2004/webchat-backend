@@ -47,4 +47,13 @@ export class SharedService {
       return null;
     }
   }
+  generateRandomCode(length = 10): string {
+    const chars =
+      'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789#@$%^!&*(){}[]><_+-=~`';
+    let inviteCode = '';
+    for (let i = 0; i < length; i++) {
+      inviteCode += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return inviteCode;
+  }
 }

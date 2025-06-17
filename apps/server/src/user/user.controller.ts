@@ -6,6 +6,7 @@ import {
   Patch,
   Headers,
   Get,
+  Query,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { SharedService } from 'src/shared/shared.service';
