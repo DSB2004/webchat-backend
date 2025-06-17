@@ -24,28 +24,18 @@ export class ChatroomService {
           },
           participants: {
             select: {
-              id: true,
-              username: true,
-              profilePic: true,
+              user: {
+                select: {
+                  id: true,
+                  username: true,
+                  profilePic: true,
+                },
+              },
             },
           },
           admins: {
             select: {
-              id: true,
-              username: true,
-              profilePic: true,
-            },
-          },
-          messages: {
-            orderBy: {
-              createdAt: 'desc',
-            },
-            select: {
-              id: true,
-              content: true,
-              createdAt: true,
-              type: true,
-              author: {
+              user: {
                 select: {
                   id: true,
                   username: true,
@@ -82,16 +72,24 @@ export class ChatroomService {
           },
           participants: {
             select: {
-              id: true,
-              username: true,
-              profilePic: true,
+              user: {
+                select: {
+                  id: true,
+                  username: true,
+                  profilePic: true,
+                },
+              },
             },
           },
           admins: {
             select: {
-              id: true,
-              username: true,
-              profilePic: true,
+              user: {
+                select: {
+                  id: true,
+                  username: true,
+                  profilePic: true,
+                },
+              },
             },
           },
           messages: {
@@ -241,16 +239,24 @@ export class ChatroomService {
           },
           participants: {
             select: {
-              id: true,
-              username: true,
-              profilePic: true,
+              user: {
+                select: {
+                  id: true,
+                  username: true,
+                  profilePic: true,
+                },
+              },
             },
           },
           admins: {
             select: {
-              id: true,
-              username: true,
-              profilePic: true,
+              user: {
+                select: {
+                  id: true,
+                  username: true,
+                  profilePic: true,
+                },
+              },
             },
           },
           messages: {
@@ -281,7 +287,7 @@ export class ChatroomService {
         const existingChatUserIds = new Set<string>();
         existingchats.forEach((chat) => {
           chat.participants.forEach((p) => {
-            if (p.id !== id) existingChatUserIds.add(p.id);
+            if (p.user.id !== id) existingChatUserIds.add(p.user.id);
           });
         });
 

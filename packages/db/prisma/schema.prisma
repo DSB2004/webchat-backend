@@ -37,14 +37,19 @@ model User {
 
 
   chatroomCreated Chatroom[] @relation("CreatedByRelation")
-  adminIn         Chatroom[] @relation("AdminRelation")
-  participantIn   Chatroom[] @relation("ParticipantRelation")
+  adminIn         ChatroomAdmin[] @relation("AdminRelation")
+  participantIn   ChatroomParticipant[] @relation("ParticipantRelation")
 
   blockedUsers   Block[] @relation("Blocker")
   blockedByUsers Block[] @relation("Blocked")
 
-  messages    Message[]
+  publicKey  String
+
+
+  messages    Message[]   @relation("UserMessageRelation")
   messageStatus      Status[]
+
+  aesKey     MessaageAESKey[]  @relation("UserAESKeyRelation")
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -70,24 +75,61 @@ enum ChatroomType{
   GROUP
 }
 
-model Chatroom{
-  id String @id @default(uuid())
-  name String?
+model Chatroom {
+  id          String             @id @default(uuid())
+  name        String?
   description String?
-  profilePic String?
-  type ChatroomType
-  
-  inviteCode String @unique
+  profilePic  String?
+  type        ChatroomType
 
-  messages Message[]
+  inviteCode  String             @unique
 
-  createdBy    User      @relation("CreatedByRelation", fields: [createdById], references: [id])
+  messages    Message[]
+
+  createdBy    User             @relation("CreatedByRelation", fields: [createdById], references: [id])
   createdById  String
-  admins       User[]    @relation("AdminRelation")
-  participants User[]    @relation("ParticipantRelation")
 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt 
+  participants ChatroomParticipant[]  @relation("ChatroomParticipantRelation")
+  admins       ChatroomAdmin[]   @relation("ChatroomAdminRelation")
+
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+model ChatroomParticipant {
+  id          String   @id @default(uuid())
+  chatroom    Chatroom @relation("ChatroomParticipantRelation",fields: [chatroomId], references: [id])
+  chatroomId  String
+
+  user        User     @relation("ParticipantRelation",fields: [userId], references: [id])
+  userId      String
+
+  @@unique([chatroomId, userId])
+}
+
+
+model ChatroomAdmin {
+  id          String   @id @default(uuid())
+  chatroom    Chatroom @relation("ChatroomAdminRelation",fields: [chatroomId], references: [id])
+  chatroomId  String
+
+  user        User     @relation("AdminRelation",fields: [userId], references: [id])
+  userId      String
+
+  @@unique([chatroomId, userId]) 
+}
+
+
+model MessaageAESKey {
+  id          String   @id @default(uuid())
+
+  user        User     @relation("UserAESKeyRelation",fields: [userId], references: [id])
+  userId      String
+
+  message     Message @relation("MessageAESKeyRelation",fields: [messageId], references: [id])
+  messageId   String
+
+  @@unique([messageId, userId]) 
 }
 
 
@@ -99,7 +141,7 @@ enum MessageType{
 model Message {
   id         String   @id @default(uuid())
 
-  author     User     @relation(fields: [authorId], references: [id])
+  author     User     @relation("UserMessageRelation",fields: [authorId], references: [id])
   authorId   String
 
   chatroom   Chatroom @relation(fields: [chatroomId], references: [id])
@@ -114,10 +156,13 @@ model Message {
   isDeleted Boolean  @default(false)
   isStarred Boolean  @default(false)
   isPined Boolean  @default(false)
+
+  aesKeys  MessaageAESKey[]  @relation("MessageAESKeyRelation")
   
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
+
 
 
 enum StatusType{

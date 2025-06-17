@@ -31,13 +31,12 @@ export class ParticipantsService {
         };
       }
 
-      await db.chatroom.update({
-        where: { id: chatroomId },
-        data: {
-          participants: {
-            connect: participantIds.map((id) => ({ id })),
-          },
-        },
+      await db.chatroomParticipant.createMany({
+        data: participantIds.map((userId) => ({
+          chatroomId,
+          userId,
+        })),
+        skipDuplicates: true,
       });
 
       // notify method
@@ -90,17 +89,20 @@ export class ParticipantsService {
           message: 'Cannot remove the owner of the chatroom',
         };
       }
-      await db.chatroom.update({
-        where: { id: chatroomId },
-        data: {
-          participants: {
-            disconnect: participantIds.map((id) => ({ id })),
+      await db.$transaction([
+        db.chatroomParticipant.deleteMany({
+          where: {
+            chatroomId,
+            userId: { in: participantIds },
           },
-          admins: {
-            disconnect: participantIds.map((id) => ({ id })),
+        }),
+        db.chatroomAdmin.deleteMany({
+          where: {
+            chatroomId,
+            userId: { in: participantIds },
           },
-        },
-      });
+        }),
+      ]);
 
       // notify method
 
@@ -136,18 +138,20 @@ export class ParticipantsService {
           message: 'Chatroom not found',
         };
       }
-
-      await db.chatroom.update({
-        where: { id: chatroomId },
-        data: {
-          participants: {
-            disconnect: { id: userId },
+      await db.$transaction([
+        db.chatroomParticipant.deleteMany({
+          where: {
+            chatroomId,
+            userId,
           },
-          admins: {
-            disconnect: { id: userId },
+        }),
+        db.chatroomAdmin.deleteMany({
+          where: {
+            chatroomId,
+            userId,
           },
-        },
-      });
+        }),
+      ]);
 
       // notify method
 
@@ -183,14 +187,10 @@ export class ParticipantsService {
           message: 'Chatroom not found',
         };
       }
-      const updateChatroom = await db.chatroom.update({
-        where: {
-          inviteCode,
-        },
+      await db.chatroomParticipant.create({
         data: {
-          participants: {
-            connect: { id: userId },
-          },
+          chatroomId: chatroom.id,
+          userId,
         },
       });
 
@@ -199,7 +199,7 @@ export class ParticipantsService {
       return {
         status: 200,
         message: 'Joined chatroom',
-        chatroomId: updateChatroom.id,
+        chatroomId: chatroom.id,
       };
     } catch (err) {
       return {
