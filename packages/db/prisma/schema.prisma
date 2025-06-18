@@ -129,6 +129,7 @@ model MessaageAESKey {
   message     Message @relation("MessageAESKeyRelation",fields: [messageId], references: [id])
   messageId   String
 
+  aesKey      String
   @@unique([messageId, userId]) 
 }
 
@@ -136,6 +137,7 @@ model MessaageAESKey {
 enum MessageType{
   TEXT
   AUDIO 
+  INFO
 }
 
 model Message {

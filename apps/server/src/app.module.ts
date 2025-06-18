@@ -1,10 +1,21 @@
 import { Module } from '@nestjs/common';
-import { UserModule } from './user/user.module';
-import { AuthModule } from './auth/auth.module';
-import { SharedModule } from './shared/shared.module';
-import { ChatroomModule } from './chatroom/chatroom.module';
-
+import { RouterModule } from '@nestjs/core';
+import { ApiModule } from './api/api.module';
+import { MiddlewareConsumer } from '@nestjs/common';
+import { LoggerMiddleware } from './middleware/logger/logger.middleware';
 @Module({
-  imports: [UserModule, AuthModule, SharedModule, ChatroomModule],
+  imports: [
+    RouterModule.register([
+      {
+        path: 'api',
+        module: ApiModule,
+      },
+    ]),
+    ApiModule,
+  ],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(LoggerMiddleware).forRoutes('*'); // Apply to all routes
+  }
+}
