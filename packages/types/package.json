@@ -17,6 +17,7 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "tsup": "^8.5.0"
+    "tsup": "^8.5.0",
+    "@webchat-backend/db":"workspace:*"
   }
 }

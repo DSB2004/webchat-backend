@@ -45,11 +45,11 @@ model User {
 
   publicKey  String
 
-
+  reactions    Reaction[]   @relation("UserReactionRelation")
   messages    Message[]   @relation("UserMessageRelation")
   messageStatus      Status[]
 
-  aesKey     MessaageAESKey[]  @relation("UserAESKeyRelation")
+  aesKey     MessageAESKey[]  @relation("UserAESKeyRelation")
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -120,7 +120,7 @@ model ChatroomAdmin {
 }
 
 
-model MessaageAESKey {
+model MessageAESKey {
   id          String   @id @default(uuid())
 
   user        User     @relation("UserAESKeyRelation",fields: [userId], references: [id])
@@ -159,8 +159,9 @@ model Message {
   isStarred Boolean  @default(false)
   isPined Boolean  @default(false)
 
-  aesKeys  MessaageAESKey[]  @relation("MessageAESKeyRelation")
-  
+  aesKeys  MessageAESKey[]  @relation("MessageAESKeyRelation")
+
+  reactions  Reaction[]  @relation("MessageReactionRelation")
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
@@ -170,10 +171,25 @@ model Message {
 enum StatusType{
   SEEN
   SENT
-  DELIVERIED
+  DELIVERED
   PENDING
 }
 
+
+model Reaction{
+  id         String   @id @default(uuid())
+   messageId  String  
+   message    Message  @relation("MessageReactionRelation",fields: [messageId], references: [id])
+
+   userId  String  
+   user    User  @relation("UserReactionRelation",fields: [userId], references: [id])
+  
+  label String 
+
+  reaction String
+  @@unique([messageId,userId])
+
+}
 model Status{
    id         String   @id @default(uuid())
    messageId  String  
@@ -182,8 +198,8 @@ model Status{
    userId  String  
    user    User  @relation(fields: [userId], references: [id])
   
-  @@unique([messageId,userId])
   status    StatusType 
+  @@unique([messageId,userId])
 
 
   
