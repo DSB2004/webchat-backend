@@ -1,8 +1,5 @@
-export enum MessageType {
-  "TEXT",
-  "AUDIO",
-  "INFO",
-}
+import {MessageType,AttachmentType} from "@webchat-backend/db"
+
 export interface MessaageAESKeyType {
   userId: string;
   messageId: string;
@@ -11,6 +8,7 @@ export interface MessaageAESKeyType {
 
 export interface Attachment {
   name: string;
+  type:AttachmentType;
   src: string;
 }
 
