@@ -1,15 +1,15 @@
-import { Injectable } from '@nestjs/common';
-import { db, StatusType } from '@webchat-backend/db';
-import { UtilService } from 'src/util/util.service';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 import { EventParams, ConsumerMessage } from 'src/app.types';
 import { redis } from '@webchat-backend/redis';
 import { SubService } from 'src/redis/sub/sub.service';
+import { KAFKA_EVENTS, PUB_SUB_EVENT } from 'src/app.types';
 import { EventsProducer } from './events.producer';
 @Injectable()
-export class EventSubscriber extends SubService {
-  constructor(private readonly producer: EventsProducer) {
-    super();
-  }
+export class EventSubscriber implements OnModuleInit {
+  constructor(
+    private readonly producer: EventsProducer,
+    private readonly subscriber: SubService,
+  ) {}
 
   private REDIS_KEY = (messageId: string) => 'message.event.' + messageId;
 
@@ -33,9 +33,35 @@ export class EventSubscriber extends SubService {
   private async execute(id: string) {
     try {
       const eventList = await this.fetchMessageEvents(id);
-        for (const event of eventList) {
-          
+      for (const event_ of eventList) {
+        const { data, event } = event_;
+        switch (event) {
+          case KAFKA_EVENTS.MESSAGE_REACTION:
+            await this.producer.addOrUpdateReaction({ message: data });
+          case KAFKA_EVENTS.MESSAGE_STATUS:
+            await this.producer.addOrUpdateStatus({ message: data });
+          case KAFKA_EVENTS.MESSAGE_STARRED:
+            await this.producer.toggleStarred({ message: data });
+          case KAFKA_EVENTS.MESSAGE_PINNED:
+            await this.producer.tooglePinned({ message: data });
+        }
+        await this.clearMessageEvents(id);
+        return true;
       }
-    } catch (err) {}
+    } catch (err) {
+      return false;
+    }
+  }
+
+  async onModuleInit() {
+    this.subscriber.subscribe(
+      PUB_SUB_EVENT.REGISTER_EVENT,
+      this.registerMessageEvent.bind(this),
+    );
+
+    this.subscriber.subscribe(
+      PUB_SUB_EVENT.EXECUTE,
+      async (id: string) => await this.execute(id),
+    );
   }
 }

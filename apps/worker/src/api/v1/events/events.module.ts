@@ -4,10 +4,10 @@ import { EventsService } from './events.service';
 import { EventsProducer } from './events.producer';
 import { UtilModule } from 'src/util/util.module';
 import { EventsController } from './events.controller';
-import { RedisPubSubModule } from 'src/redis-pub-sub/redis-pub-sub.module';
+import { RedisModule } from 'src/redis/redis.module';
 
 @Module({
-  imports: [UtilModule, RedisPubSubModule],
+  imports: [UtilModule, RedisModule],
   providers: [EventsService, EventsConsumer, EventsProducer],
   controllers: [EventsController],
 })

@@ -4,13 +4,17 @@ import { ConsumerService } from 'src/kafka/consumer/consumer.service';
 import { EventsService } from './events.service';
 import { EventParams } from 'src/app.types';
 import { UtilService } from 'src/util/util.service';
-
+import { KAFKA_EVENTS } from 'src/app.types';
+import { PubService } from 'src/redis/pub/pub.service';
+import { StatusParams, ReactionParams } from 'src/app.types';
+import { EventPublsiher } from './event.publisher';
 @Injectable()
 export class EventsConsumer implements OnModuleInit {
   constructor(
     private readonly consumer: ConsumerService,
     private readonly event: EventsService,
     private readonly util: UtilService,
+    private readonly publisher: EventPublsiher,
   ) {}
 
   async onModuleInit() {
@@ -23,34 +27,32 @@ export class EventsConsumer implements OnModuleInit {
               message.value?.toString() || '{}',
             ) as ConsumerMessage<EventParams>) || null;
           null;
-          
+
           if (!messageJSON || messageJSON === null) {
             console.warn('Message Body Required');
             return;
           }
 
           const { event, data } = messageJSON;
+
           const { messageId } = data;
           if (!(await this.util.checkMessageExist(messageId))) {
-            return;
+            this.publisher.registerNewEvent(messageJSON);
+            console.warn(
+              '[EVENT] Message object not found...pushing to pub/sub',
+            );
           }
+
           console.log(message.value?.toString(), topic, partition);
-          // if (event === KAFKA_EVENTS.MESSAGE_CREATE) {
-          //   this.chat.addMessage({
-          //     message: messageJSON.data,
-          //   });
-          // } else if (event === KAFKA_EVENTS.MESSAGE_DELETE) {
-          //   this.chat.deleteMessage({
-          //     messageId: messageJSON.data.id,
-          //     userId: messageJSON.userId,
-          //   });
-          // } else if (event === KAFKA_EVENTS.MESSAGE_UPDATE) {
-          //   this.chat.updateMessage({
-          //     messageId: messageJSON.data.id,
-          //     userId: messageJSON.userId,
-          //     content: messageJSON.data.content,
-          //   });
-          // }
+          if (event === KAFKA_EVENTS.MESSAGE_REACTION) {
+            await this.event.addUpdateReaction(data as ReactionParams);
+          } else if (event === KAFKA_EVENTS.MESSAGE_STATUS) {
+            await this.event.addUpdateStatus(data as StatusParams);
+          } else if (event === KAFKA_EVENTS.MESSAGE_PINNED) {
+            await this.event.tooglePin(data);
+          } else if (event === KAFKA_EVENTS.MESSAGE_STARRED) {
+            await this.event.toogleStar(data);
+          }
         },
       },
     );

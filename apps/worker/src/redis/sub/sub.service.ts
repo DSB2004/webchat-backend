@@ -21,7 +21,7 @@ export class SubService implements OnModuleInit, OnApplicationShutdown {
     }
   }
 
-  async subscribe(channel: string, handler: (message: any) => Promise<void>) {
+  async subscribe(channel: string, handler: (message: any) => Promise<any>) {
     await this.subscriber.subscribe(channel);
 
     this.subscriber.on('message', async (receivedChannel, rawMessage) => {
@@ -34,5 +34,5 @@ export class SubService implements OnModuleInit, OnApplicationShutdown {
         }
       }
     });
-    } 
+  }
 }

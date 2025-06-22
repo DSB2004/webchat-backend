@@ -2,9 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { db } from '@webchat-backend/db';
 import { Message } from '@webchat-backend/types';
 import { UtilService } from 'src/util/util.service';
+import { ChatPublsiher } from './chat.publisher';
 @Injectable()
 export class ChatService {
-  constructor(private readonly util: UtilService) {}
+  constructor(
+    private readonly util: UtilService,
+    private readonly publisher: ChatPublsiher,
+  ) {}
   async addMessage({ message }: { message: Message }) {
     const { attachments, aesKeys, ...rest } = message;
     try {
@@ -17,7 +21,7 @@ export class ChatService {
         console.warn('Skip processing due to permission error.');
         return;
       }
-      await db.$transaction(async (tx) => {
+      const messageId = await db.$transaction(async (tx) => {
         const createdMessage = await tx.message.create({
           data: {
             ...rest,
@@ -36,7 +40,10 @@ export class ChatService {
             messageId,
           })),
         });
+        return messageId;
       });
+
+      await this.publisher.executeEvent(messageId);
     } catch (err) {
       console.error('[CHAT] Error creating new message', err);
       throw new Error('Failed to send message');

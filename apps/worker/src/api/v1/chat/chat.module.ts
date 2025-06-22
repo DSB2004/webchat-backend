@@ -7,9 +7,10 @@ import { ProducerModule } from 'src/kafka/producer/producer.module';
 import { ConsumerModule } from 'src/kafka/consumer/consumer.module';
 import { ChatService } from './chat.service';
 import { UtilModule } from 'src/util/util.module';
+import { ChatPublsiher } from './chat.publisher';
 @Module({
   imports: [ProducerModule, ConsumerModule, UtilModule],
-  providers: [ChatProducer, ChatConsumer, ChatService],
+  providers: [ChatProducer, ChatConsumer, ChatService, ChatPublsiher],
   controllers: [ChatController],
 })
 export class ChatModule {}

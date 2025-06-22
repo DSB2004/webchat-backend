@@ -1,3 +1,4 @@
+import { StatusType } from '@webchat-backend/db';
 export enum KAFKA_EVENTS {
   MESSAGE_CREATE = 'message.create',
   MESSAGE_UPDATE = 'message.update',
@@ -22,4 +23,12 @@ export interface ConsumerMessage<T> {
   event: KAFKA_EVENTS;
   data: T;
   userId: string;
+}
+
+export interface StatusParams extends EventParams {
+  status: StatusType;
+}
+export interface ReactionParams extends EventParams {
+  label: string;
+  reaction: string;
 }
