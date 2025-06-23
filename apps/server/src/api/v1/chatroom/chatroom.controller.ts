@@ -10,6 +10,8 @@ import {
 } from '@nestjs/common';
 import { ChatroomService } from './chatroom.service';
 import { UtilService } from 'src/util/util.service';
+import { VerifyJWT } from '@webchat-backend/jwt';
+import { db } from '@webchat-backend/db';
 @Controller('chatroom')
 export class ChatroomController {
   constructor(
@@ -61,6 +63,9 @@ export class ChatroomController {
       }
       return { message, status, ...rest };
     } catch (err) {
+      if (err instanceof HttpException) {
+        throw err; // rethrow original HttpException with correct status
+      }
       throw new HttpException('Internal Server Error', 500);
     }
   }
@@ -70,15 +75,22 @@ export class ChatroomController {
     @Body()
     body: {
       participants: string[];
-      owner: string;
       type: 'GROUP' | 'PERSONAL';
     },
-    @Headers('authorization') accessToken: string,
+    @Headers('request_email') email: string,
   ) {
     try {
       if (!body) throw new HttpException('Body is required', 400);
-      const { participants, owner, type } = body;
-      if (!participants || participants.length === 0 || !owner || !type) {
+
+      const user = await db.user.findUnique({
+        where: {
+          email,
+        },
+      });
+      if (!user) throw new HttpException('User not found', 400);
+      const { participants, type } = body;
+      const owner = user.id;
+      if (!participants  || !owner || !type) {
         throw new HttpException(
           'participant, owner and type all are required',
           400,
@@ -99,6 +111,9 @@ export class ChatroomController {
       }
       return { message, status, ...rest };
     } catch (err) {
+      if (err instanceof HttpException) {
+        throw err; // rethrow original HttpException with correct status
+      }
       throw new HttpException('Internal Server Error', 500);
     }
   }
@@ -124,6 +139,9 @@ export class ChatroomController {
       }
       return { message, status, ...rest };
     } catch (err) {
+      if (err instanceof HttpException) {
+        throw err; // rethrow original HttpException with correct status
+      }
       throw new HttpException('Internal Server Error', 500);
     }
   }
@@ -149,6 +167,9 @@ export class ChatroomController {
       }
       return { message, status, ...rest };
     } catch (err) {
+      if (err instanceof HttpException) {
+        throw err; // rethrow original HttpException with correct status
+      }
       throw new HttpException('Internal Server Error', 500);
     }
   }

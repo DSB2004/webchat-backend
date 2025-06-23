@@ -3,6 +3,7 @@ import { RouterModule } from '@nestjs/core';
 import { ApiModule } from './api/api.module';
 import { MiddlewareConsumer } from '@nestjs/common';
 import { LoggerMiddleware } from './middleware/logger/logger.middleware';
+import { RateLimitMiddleware } from './middleware/rate-limit/rate-limit.middleware';
 @Module({
   imports: [
     RouterModule.register([
@@ -16,6 +17,7 @@ import { LoggerMiddleware } from './middleware/logger/logger.middleware';
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(LoggerMiddleware).forRoutes('*'); // Apply to all routes
+    consumer.apply(LoggerMiddleware).forRoutes('*');
+    consumer.apply(RateLimitMiddleware).forRoutes('*');
   }
 }

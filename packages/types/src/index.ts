@@ -1,4 +1,4 @@
-import {MessageType,AttachmentType} from "@webchat-backend/db"
+import { MessageType, AttachmentType } from "@webchat-backend/db";
 
 export interface MessaageAESKeyType {
   userId: string;
@@ -8,7 +8,7 @@ export interface MessaageAESKeyType {
 
 export interface Attachment {
   name: string;
-  type:AttachmentType;
+  type: AttachmentType;
   src: string;
 }
 
@@ -21,4 +21,9 @@ export interface Message {
 
   attachments: Attachment[];
   aesKeys: MessaageAESKeyType[];
+}
+export interface TokenType {
+  type: "AUTH_TOKEN" | "REFRESH_TOKEN";
+  email: string;
+  id: string;
 }

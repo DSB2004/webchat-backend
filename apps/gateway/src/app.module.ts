@@ -3,6 +3,8 @@ import { ApiModule } from './api/api.module';
 import { SocketsModule } from './sockets/sockets.module';
 import { UtilsModule } from './utils/utils.module';
 import { ConfigModule } from '@nestjs/config';
+import { MiddlewareConsumer } from '@nestjs/common';
+import { LoggerMiddleware } from './middleware/logger/logger.middleware';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -14,4 +16,8 @@ import { ConfigModule } from '@nestjs/config';
   ],
   controllers: [],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(LoggerMiddleware).forRoutes('*');
+  }
+}

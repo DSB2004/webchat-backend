@@ -22,7 +22,7 @@ export class ParticipantsController {
     @Headers('authorization') accessToken: string,
     @Body() body: { participants: string[]; admin: string },
   ) {
-    const user = await this.util.getUser({ accessToken });
+    const user = await this.util.getUserInfo({ accessToken });
     if (!user) throw new HttpException('Unauthorized', 401);
 
     const { participants, admin } = body;
@@ -30,7 +30,7 @@ export class ParticipantsController {
     const { status, message } = await this.participant.addParticipant({
       chatroomId,
       participantIds: participants,
-      adminId: admin,
+      adminId: user.id,
     });
 
     if (status !== 200) {

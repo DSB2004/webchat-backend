@@ -20,7 +20,7 @@ export const CreateJWT = async ({
 
 export const VerifyJWT = async <T = any>(token: string): Promise<T | null> => {
   try {
-    const actualToken = token.split(" ")[0] || "";
+    const actualToken = token.split(" ")[1] || "";
     const { payload } = await jwtVerify<T>(actualToken, secret);
     return payload;
   } catch (e) {

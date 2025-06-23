@@ -5,6 +5,7 @@ import { AdminModule } from './admin/admin.module';
 import { MessageModule } from './message/message.module';
 import { ParticipantsModule } from './participants/participants.module';
 import { UtilModule } from 'src/util/util.module';
+
 @Module({
   providers: [ChatroomService],
   controllers: [ChatroomController],

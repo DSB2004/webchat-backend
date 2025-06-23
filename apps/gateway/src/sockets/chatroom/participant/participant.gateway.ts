@@ -53,4 +53,14 @@ export class ParticipantGateway {
       chatroomId: payload.chatroomId,
     });
   }
+  async notifyChatroomCreate(payload: any) {
+    console.log('message:', payload);
+    await this.util.broadcastToParticipants({
+      client: null,
+      event: CLIENT_EVENT.CLIENT_CHATROOM_CREATED,
+      payload,
+      server: this.server,
+      chatroomId: payload.chatroomId,
+    });
+  }
 }

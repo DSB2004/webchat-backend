@@ -27,6 +27,7 @@ export enum CLIENT_EVENT {
   CLIENT_CLEAR_MESSAGE = 'client.message.clear',
   CLIENT_STATUS_MESSAGE = 'server.message.status',
 
+  CLIENT_CHATROOM_CREATED = 'client.chatroom.created',
   CLIENT_USER_BLOCK = 'client.user.block',
   CLIENT_USER_UNBLOCK = 'client.user.unblock',
 

@@ -13,6 +13,9 @@ export class ApiKeyCheckMiddleware implements NestMiddleware {
       throw new HttpException('Invalid or missing internal API key', 403);
     }
 
+    if (req.method !== 'POST') {
+      throw new HttpException('Only POST method allowed', 408);
+    }
     next();
   }
 }

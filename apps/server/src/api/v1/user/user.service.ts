@@ -86,6 +86,9 @@ export class UserService {
 
       return { status: 200, message: 'User updated successfully' };
     } catch (err) {
+      if (err.code === 'P2002' && err.meta?.target?.includes('username')) {
+        return { status: 409, message: 'Username already taken' };
+      }
       return { status: 500, message: 'Internal Server Error' };
     } finally {
     }

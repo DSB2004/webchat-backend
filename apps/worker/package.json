@@ -30,6 +30,7 @@
     "@webchat-backend/redis": "workspace:*",
     "@webchat-backend/types": "workspace:*",
     "bullmq": "^5.55.0",
+    "express-rate-limit": "^7.5.1",
     "kafka-js": "^0.0.0",
     "kafkajs": "^2.2.4",
     "reflect-metadata": "^0.2.2",

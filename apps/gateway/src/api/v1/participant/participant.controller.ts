@@ -1,12 +1,12 @@
-import { Controller, HttpException, Patch, Body } from '@nestjs/common';
+import { Controller, HttpException, Post, Body } from '@nestjs/common';
 import { ParticipantService } from './participant.service';
 
 @Controller('participant')
 export class ParticipantController {
   constructor(private readonly participantService: ParticipantService) {}
-  @Patch('join')
+  @Post('join')
   async handleJoinParticipantNotify(
-    @Body() body: { message: string; chatroomId },
+    @Body() body: { message: string; chatroomId: string },
   ) {
     try {
       const { message, status } =
@@ -20,9 +20,9 @@ export class ParticipantController {
       throw new HttpException('Internal Server Error', 500);
     }
   }
-  @Patch('left')
+  @Post('left')
   async handleLeftParticipantNotify(
-    @Body() body: { message: string; chatroomId },
+    @Body() body: { message: string; chatroomId: string },
   ) {
     try {
       const { message, status } =
@@ -36,9 +36,9 @@ export class ParticipantController {
       throw new HttpException('Internal Server Error', 500);
     }
   }
-  @Patch('add')
+  @Post('add')
   async handleAddParticipantNotify(
-    @Body() body: { message: string; chatroomId },
+    @Body() body: { message: string; chatroomId: string },
   ) {
     try {
       const { message, status } =
@@ -52,13 +52,29 @@ export class ParticipantController {
       throw new HttpException('Internal Server Error', 500);
     }
   }
-  @Patch('remove')
+  @Post('remove')
   async handleRemoveParticipantNotify(
-    @Body() body: { message: string; chatroomId },
+    @Body() body: { message: string; chatroomId: string },
   ) {
     try {
       const { message, status } =
         await this.participantService.notifyJoinParticipant(body);
+
+      if (status != 200) {
+        throw new HttpException(message, status);
+      }
+      return { status, message };
+    } catch (err) {
+      throw new HttpException('Internal Server Error', 500);
+    }
+  }
+  @Post('chatroom')
+  async handleChatroomCreatedNotify(
+    @Body() body: { message: string; chatroomId: string },
+  ) {
+    try {
+      const { message, status } =
+        await this.participantService.notifyChatroomCreated(body);
 
       if (status != 200) {
         throw new HttpException(message, status);

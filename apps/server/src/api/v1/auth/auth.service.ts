@@ -29,7 +29,8 @@ export class AuthService {
     try {
       const otp = 1234;
       await redis.set('otp-session-' + email, JSON.stringify({ email, otp }));
-      // mail logic
+      if (process.env.NODE_ENV === 'development')
+        console.log(`[OTP] ${email}:${otp}`);
       return true;
     } catch (err) {
       return false;
@@ -137,7 +138,7 @@ export class AuthService {
   }
 
   async verify({ otp, email }: { otp: string; email: string }) {
-    const auth = await this.util.existUser({ email });
+    const auth = await this.util.existAuth({ email });
     if (!auth || auth == null)
       return { status: 400, message: 'No account found' };
     const { status, message } = await this.verifyUser({ otp, email });
@@ -161,7 +162,7 @@ export class AuthService {
     const userExist = (await this.util.existUser({ email })) != null;
     return {
       status: 200,
-      message: 'You email has been verified',
+      message: 'Your email has been verified',
       accessToken,
       refreshToken,
       userExist,
@@ -173,7 +174,6 @@ export class AuthService {
 
       if (!token || token == null)
         return { status: 400, message: 'Token has expired' };
-
       const { email, type, id } = token;
 
       if (type !== 'REFRESH_TOKEN')
@@ -193,7 +193,7 @@ export class AuthService {
           email,
           id,
         },
-        expireIn: 'd',
+        expireIn: '7d',
       });
       return {
         status: 200,
@@ -213,7 +213,7 @@ export class AuthService {
       await this.sendOTP({ email });
       return {
         status: 200,
-        message: 'Verification email has been sent to your email',
+        message: 'Verification code has been sent to your email',
       };
     } catch (err) {
       return { status: 500, message: 'Internal Server Error' };

@@ -49,6 +49,7 @@ export class UserController {
   async updateUser(
     @Body()
     body: {
+      username?: string;
       status?: string;
       description?: string;
       profilePic?: string;
@@ -59,12 +60,13 @@ export class UserController {
     const user = await this.util.getUser({ accessToken });
     if (user == null) throw new HttpException('Token expired', 401);
     const { email } = user;
-    const { profilePic, description, status: userStatus } = body;
+    const { profilePic, username, description, status: userStatus } = body;
     const { status, message, ...rest } = await this.userService.update({
       email,
       description,
       status: userStatus,
       profilePic,
+      username,
     });
 
     if (status !== 200) {

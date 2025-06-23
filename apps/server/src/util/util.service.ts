@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { db } from '@webchat-backend/db';
 import { VerifyJWT } from '@webchat-backend/jwt';
+import axios, { Axios } from 'axios';
 import { TokenType } from 'src/app.types';
 @Injectable()
 export class UtilService {
@@ -55,5 +56,16 @@ export class UtilService {
       inviteCode += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     return inviteCode;
+  }
+
+  private gatewayAxios: Axios = axios.create({
+    baseURL: (process.env.GATEWAY_URL as string) || 'http://localhost:3001',
+    headers: {
+      INTERNAL_API_KEY: process.env.INTERNAL_API_KEY,
+    },
+  });
+
+  async makeGatewayRequest(url, payload) {
+    await this.gatewayAxios.post(url, payload);
   }
 }

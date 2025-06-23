@@ -3,6 +3,8 @@ import { db } from '@webchat-backend/db';
 import { Socket, Server } from 'socket.io';
 import { CLIENT_EVENT } from 'src/app.types';
 import { redis } from '@webchat-backend/redis';
+import { VerifyJWT } from '@webchat-backend/jwt';
+import { TokenType } from '@webchat-backend/types';
 @Injectable()
 export class UtilsService {
   private SOCKET_USER_KEY = 'socket-to-user';
@@ -16,11 +18,34 @@ export class UtilsService {
     socketId: string;
   }) {
     try {
-      await redis.hset(this.SOCKET_USER_KEY, { socketId, userId });
-      await redis.hset(this.USER_SOCKET_KEY, { userId, socketId });
+      const existingSocketId = await redis.hget(this.USER_SOCKET_KEY, userId);
+
+      if (existingSocketId) {
+        return false;
+      }
+      await redis.hset(this.SOCKET_USER_KEY, socketId, userId); 
+      await redis.hset(this.USER_SOCKET_KEY, userId, socketId); 
       return true;
     } catch (err) {
       return false;
+    }
+  }
+  async getUserfromDB({ accessToken }: { accessToken: string }) {
+    try {
+      const _user = await VerifyJWT<TokenType>(accessToken);
+      if (!_user) return null;
+
+      const user = await db.user.findUnique({
+        where: {
+          email: _user.email,
+        },
+        select: {
+          id: true,
+        },
+      });
+      return user;
+    } catch (err) {
+      return null;
     }
   }
   async getUser({ userId, socketId }: { userId?: string; socketId?: string }) {
@@ -33,6 +58,7 @@ export class UtilsService {
         return null;
       }
     } catch (err) {
+      console.log(err);
       return null;
     }
   }

@@ -1,10 +1,10 @@
-import { Controller, Patch, HttpException, Body } from '@nestjs/common';
+import { Controller, Post, HttpException, Body } from '@nestjs/common';
 import { AdminService } from './admin.service';
 
 @Controller('admin')
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
-  @Patch('add')
+  @Post('add')
   async handleAddParticipantNotify(
     @Body() body: { message: string; chatroomId },
   ) {
@@ -19,7 +19,7 @@ export class AdminController {
       throw new HttpException('Internal Server Error', 500);
     }
   }
-  @Patch('remove')
+  @Post('remove')
   async handleRemoveParticipantNotify(
     @Body() body: { message: string; chatroomId },
   ) {

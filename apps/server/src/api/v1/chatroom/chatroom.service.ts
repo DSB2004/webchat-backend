@@ -47,7 +47,7 @@ export class ChatroomService {
         },
         where: { id },
       });
-      return { status: 500, message: 'Internal Server Error', chatroom };
+      return { status: 200, message: 'Chatroom Found', chatroom };
     } catch (err) {
       return { status: 500, message: 'Internal Server Error' };
     }
@@ -113,7 +113,7 @@ export class ChatroomService {
         },
         where: { inviteCode },
       });
-      return { status: 500, message: 'Internal Server Error', chatroom };
+      return { status: 200, message: 'Chatroom found', chatroom };
     } catch (err) {
       return { status: 500, message: 'Internal Server Error' };
     }
@@ -137,20 +137,41 @@ export class ChatroomService {
           };
         }
         const [user1, user2] = participants.sort();
+
         const existing = await db.chatroom.findFirst({
           where: {
             type: 'PERSONAL',
             participants: {
-              every: {
-                id: { in: [user1, user2] },
+              some: {
+                userId: user1,
               },
             },
+            AND: [
+              {
+                participants: {
+                  some: {
+                    userId: user2,
+                  },
+                },
+              },
+              {
+                participants: {
+                  every: {
+                    userId: {
+                      in: [user1, user2],
+                    },
+                  },
+                },
+              },
+            ],
           },
-
-          include: { participants: true },
+          include: {
+            participants: true,
+          },
         });
+
         if (existing) {
-          const chatroom = await this.getChatroom(existing.id);
+          const { chatroom } = await this.getChatroom(existing.id);
           return {
             status: 200,
             message: 'Chatroom exist',
@@ -158,32 +179,56 @@ export class ChatroomService {
           };
         }
       }
-      const newChatroom = await db.chatroom.create({
-        data: {
-          inviteCode: this.util.generateRandomCode(),
-          participants: {
-            connect: participants.map((id) => ({ id })),
+
+      const newChatroom = await prisma?.$transaction(async (tx) => {
+        const newChatroom = await tx.chatroom.create({
+          data: {
+            inviteCode: this.util.generateRandomCode(),
+            type: type,
+            createdBy: { connect: { id: owner } },
           },
-          admins: {
-            connect: { id: owner },
+        });
+        if (!participants.includes(owner)) {
+          participants.push(owner);
+        }
+        await tx.chatroomParticipant.createMany({
+          data: participants.map((participant) => {
+            return {
+              userId: participant,
+              chatroomId: newChatroom.id,
+            };
+          }),
+        });
+        await tx.chatroomAdmin.create({
+          data: {
+            userId: owner,
+            chatroomId: newChatroom.id,
           },
-          type: type,
-          createdBy: { connect: { id: owner } },
-        },
+        });
+        return newChatroom;
       });
-      if (newChatroom) {
-        const chatroom = await this.getChatroom(newChatroom.id);
+      if (!newChatroom) {
         return {
-          status: 200,
-          message: 'Chatroom created',
-          chatroom,
+          status: 500,
+          message: 'Error creating chatroom',
         };
       }
+
+      if (type === 'GROUP') {
+        await this.util.makeGatewayRequest('/participant/chatroom', {
+          chatroomId: newChatroom.id,
+          message: 'User created this group',
+        });
+      }
+
+      const { chatroom } = await this.getChatroom(newChatroom.id);
       return {
-        status: 500,
-        message: 'Error creating chatroom',
+        status: 201,
+        message: 'Chatroom created',
+        chatroom,
       };
     } catch (err) {
+      console.log(err);
       return { status: 500, message: 'Internal Server Error' };
     }
   }
@@ -350,7 +395,7 @@ export class ChatroomService {
           id,
           admins: {
             some: {
-              id: adminId,
+              userId: adminId,
             },
           },
         },

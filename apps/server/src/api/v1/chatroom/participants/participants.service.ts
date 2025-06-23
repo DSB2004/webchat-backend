@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { db } from '@webchat-backend/db';
-
+import { UtilService } from 'src/util/util.service';
 @Injectable()
 export class ParticipantsService {
+  constructor(private readonly util: UtilService) {}
   async addParticipant({
     chatroomId,
     participantIds,
@@ -18,7 +19,7 @@ export class ParticipantsService {
           id: chatroomId,
           admins: {
             some: {
-              id: adminId,
+              userId: adminId,
             },
           },
         },
@@ -38,9 +39,24 @@ export class ParticipantsService {
         })),
         skipDuplicates: true,
       });
+      const users = await db.user.findMany({
+        where: {
+          id: {
+            in: participantIds,
+          },
+        },
+        select: {
+          id: true,
+          username: true,
+        },
+      });
 
-      // notify method
-
+      for (const user of users) {
+        await this.util.makeGatewayRequest('/participant/add', {
+          chatroomId,
+          message: `${user.username} was added to the group`,
+        });
+      }
       return {
         status: 200,
         message: 'Participants added into chatroom',
@@ -104,6 +120,25 @@ export class ParticipantsService {
         }),
       ]);
 
+      const users = await db.user.findMany({
+        where: {
+          id: {
+            in: participantIds,
+          },
+        },
+        select: {
+          id: true,
+          username: true,
+        },
+      });
+
+      for (const user of users) {
+        await this.util.makeGatewayRequest('/participant/remove', {
+          chatroomId,
+          message: `${user.username} was removed from the group`,
+        });
+      }
+
       // notify method
 
       return {
@@ -152,8 +187,21 @@ export class ParticipantsService {
           },
         }),
       ]);
-
-      // notify method
+      const user = await db.user.findUnique({
+        where: {
+          id: userId,
+        },
+        select: {
+          id: true,
+          username: true,
+        },
+      });
+      if (user) {
+        await this.util.makeGatewayRequest('/participant/leave', {
+          chatroomId,
+          message: `${user.username} left the group`,
+        });
+      }
 
       return {
         status: 200,
@@ -194,7 +242,21 @@ export class ParticipantsService {
         },
       });
 
-      // notify method
+      const user = await db.user.findUnique({
+        where: {
+          id: userId,
+        },
+        select: {
+          id: true,
+          username: true,
+        },
+      });
+      if (user) {
+        await this.util.makeGatewayRequest('/participant/join', {
+          chatroomId: chatroom.id,
+          message: `${user.username} left the group`,
+        });
+      }
 
       return {
         status: 200,

@@ -72,4 +72,22 @@ export class ParticipantService {
       return { status: 500, message: 'Internal Server Error' };
     }
   }
+
+  async notifyChatroomCreated({
+    message,
+    chatroomId,
+  }: {
+    message: string;
+    chatroomId: string;
+  }) {
+    try {
+      await this.participantGateway.notifyChatroomCreate({
+        message,
+        chatroomId,
+      });
+      return { status: 200, message: 'Update sent via websocket' };
+    } catch (err) {
+      return { status: 500, message: 'Internal Server Error' };
+    }
+  }
 }
