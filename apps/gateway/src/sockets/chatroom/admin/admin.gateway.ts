@@ -19,6 +19,16 @@ export class AdminGateway {
       chatroomId: payload.chatroomId,
     });
   }
+  async notifyLeftAdmin(payload: any) {
+    console.log('message:', payload);
+    await this.util.broadcastToParticipants({
+      client: null,
+      event: CLIENT_EVENT.CLIENT_LEAVE_ADMIN,
+      payload,
+      server: this.server,
+      chatroomId: payload.chatroomId,
+    });
+  }
 
   async notifyRemoveAdmin(payload: any) {
     console.log('message:', payload);

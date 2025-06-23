@@ -21,6 +21,23 @@ export class AdminService {
       return { status: 500, message: 'Internal Server Error' };
     }
   }
+  async notifyLeftAdmin({
+    message,
+    chatroomId,
+  }: {
+    message: string;
+    chatroomId: string;
+  }) {
+    try {
+      await this.adminGateway.notifyLeftAdmin({
+        message,
+        chatroomId,
+      });
+      return { status: 200, message: 'Update sent via websocket' };
+    } catch (err) {
+      return { status: 500, message: 'Internal Server Error' };
+    }
+  }
   async notifyRemoveAdmin({
     message,
     chatroomId,

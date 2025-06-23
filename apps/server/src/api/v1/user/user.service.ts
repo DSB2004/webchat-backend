@@ -107,6 +107,17 @@ export class UserService {
           username: true,
           description: true,
           profilePic: true,
+          blockedUsers: {
+            select: {
+              blocked: {
+                select: {
+                  id: true,
+                  username: true,
+                  email: true,
+                },
+              },
+            },
+          },
         },
       });
 

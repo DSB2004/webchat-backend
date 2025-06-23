@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { db } from '@webchat-backend/db';
+import { db, Chatroom } from '@webchat-backend/db';
 import { UtilService } from 'src/util/util.service';
 @Injectable()
 export class ParticipantsService {
@@ -16,6 +16,7 @@ export class ParticipantsService {
     try {
       const chatroom = await db.chatroom.findFirst({
         where: {
+          type: 'GROUP',
           id: chatroomId,
           admins: {
             some: {
@@ -32,31 +33,34 @@ export class ParticipantsService {
         };
       }
 
-      await db.chatroomParticipant.createMany({
-        data: participantIds.map((userId) => ({
-          chatroomId,
-          userId,
-        })),
-        skipDuplicates: true,
-      });
-      const users = await db.user.findMany({
-        where: {
-          id: {
-            in: participantIds,
-          },
-        },
-        select: {
-          id: true,
-          username: true,
-        },
-      });
+      const addedUsers: { id: string; username: string }[] = [];
 
-      for (const user of users) {
+      for (const userId of participantIds) {
+        try {
+          await db.chatroomParticipant.create({
+            data: { chatroomId, userId },
+          });
+
+          const user = await db.user.findUnique({
+            where: { id: userId },
+            select: { id: true, username: true },
+          });
+
+          if (user) addedUsers.push(user);
+        } catch (err: any) {
+          if (err.code !== 'P2002') {
+            //  skip any errors
+          }
+        }
+      }
+
+      for (const user of addedUsers) {
         await this.util.makeGatewayRequest('/participant/add', {
           chatroomId,
           message: `${user.username} was added to the group`,
         });
       }
+
       return {
         status: 200,
         message: 'Participants added into chatroom',
@@ -86,6 +90,7 @@ export class ParticipantsService {
               id: adminId,
             },
           },
+          type: 'GROUP',
         },
         select: {
           createdById: true,
@@ -164,6 +169,7 @@ export class ParticipantsService {
       const chatroom = await db.chatroom.findFirst({
         where: {
           id: chatroomId,
+          type: 'GROUP',
         },
       });
 
@@ -222,19 +228,23 @@ export class ParticipantsService {
     userId: string;
     inviteCode: string;
   }) {
+    let chatroom: Chatroom | null = null;
+
     try {
-      const chatroom = await db.chatroom.findFirst({
+      chatroom = await db.chatroom.findFirst({
         where: {
           inviteCode,
           type: 'GROUP',
         },
       });
+
       if (!chatroom) {
         return {
           status: 400,
           message: 'Chatroom not found',
         };
       }
+
       await db.chatroomParticipant.create({
         data: {
           chatroomId: chatroom.id,
@@ -243,18 +253,14 @@ export class ParticipantsService {
       });
 
       const user = await db.user.findUnique({
-        where: {
-          id: userId,
-        },
-        select: {
-          id: true,
-          username: true,
-        },
+        where: { id: userId },
+        select: { id: true, username: true },
       });
+
       if (user) {
         await this.util.makeGatewayRequest('/participant/join', {
           chatroomId: chatroom.id,
-          message: `${user.username} left the group`,
+          message: `${user.username} joined the group via invite link`,
         });
       }
 
@@ -263,7 +269,15 @@ export class ParticipantsService {
         message: 'Joined chatroom',
         chatroomId: chatroom.id,
       };
-    } catch (err) {
+    } catch (err: any) {
+      if (err.code === 'P2002') {
+        return {
+          status: 409,
+          message: 'You are already in the chatroom',
+          chatroomId: chatroom ? chatroom.id : null,
+        };
+      }
+
       return {
         status: 500,
         message: 'Internal Server Error',

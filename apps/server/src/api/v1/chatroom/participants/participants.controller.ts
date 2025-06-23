@@ -69,21 +69,21 @@ export class ParticipantsController {
     @Param('code') code: string,
     @Headers('authorization') accessToken: string,
   ) {
-    const user = await this.util.getUser({ accessToken });
+    const user = await this.util.getUserInfo({ accessToken });
     if (!user) throw new HttpException('Unauthorized', 401);
 
     const { id } = user;
 
-    const { status, message } = await this.participant.joinChatroom({
+    const { status, message, ...rest } = await this.participant.joinChatroom({
       inviteCode: code,
       userId: id,
     });
 
     if (status !== 200) {
-      throw new HttpException(message, status);
+      throw new HttpException({ message, ...rest }, status);
     }
 
-    return { status, message };
+    return { status, message, rest };
   }
 
   @Patch('/leave/:chatroomId')
@@ -91,7 +91,7 @@ export class ParticipantsController {
     @Param('chatroomId') chatroomId: string,
     @Headers('authorization') accessToken: string,
   ) {
-    const user = await this.util.getUser({ accessToken });
+    const user = await this.util.getUserInfo({ accessToken });
     if (!user) throw new HttpException('Unauthorized', 401);
 
     const { id } = user;

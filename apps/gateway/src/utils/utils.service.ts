@@ -18,13 +18,13 @@ export class UtilsService {
     socketId: string;
   }) {
     try {
-      const existingSocketId = await redis.hget(this.USER_SOCKET_KEY, userId);
+      // const existingSocketId = await redis.hget(this.USER_SOCKET_KEY, userId);
 
-      if (existingSocketId) {
-        return false;
-      }
-      await redis.hset(this.SOCKET_USER_KEY, socketId, userId); 
-      await redis.hset(this.USER_SOCKET_KEY, userId, socketId); 
+      // if (existingSocketId) {
+      //   return false;
+      // }
+      await redis.hset(this.SOCKET_USER_KEY, socketId, userId);
+      await redis.hset(this.USER_SOCKET_KEY, userId, socketId);
       return true;
     } catch (err) {
       return false;
@@ -127,7 +127,9 @@ export class UtilsService {
       return [];
     }
   }
-
+  async purgeCache(chatroomId: string) {
+    await redis.del(this.CHATROOM_PARTICIPANT_LIST_KEY + chatroomId);
+  }
   async broadcastToParticipants({
     client,
     server,

@@ -41,6 +41,7 @@ export class UtilService {
         select: {
           email: true,
           id: true,
+          username: true,
           blockedUsers: true,
         },
       });

@@ -27,20 +27,17 @@ export class ChatroomController {
     @Headers('authorization') accessToken: string,
   ) {
     const { id } = param;
-    try {
-      if (!id || id === null) {
-        throw new HttpException('id is required', 400);
-      }
-      const { message, status, ...rest } =
-        await this.chatroomService.getChatroom(id);
 
-      if (status !== 200) {
-        throw new HttpException(message, status);
-      }
-      return { message, status, ...rest };
-    } catch (err) {
-      throw new HttpException('Internal Server Error', 500);
+    if (!id || id === null) {
+      throw new HttpException('id is required', 400);
     }
+    const { message, status, ...rest } =
+      await this.chatroomService.getChatroom(id);
+
+    if (status !== 200) {
+      throw new HttpException(message, status);
+    }
+    return { message, status, ...rest };
   }
 
   @Get('/invitecode/:code')
@@ -51,7 +48,6 @@ export class ChatroomController {
     },
   ) {
     const { code } = param;
-    try {
       if (!code || code === null) {
         throw new HttpException('code is required', 400);
       }
@@ -62,12 +58,8 @@ export class ChatroomController {
         throw new HttpException(message, status);
       }
       return { message, status, ...rest };
-    } catch (err) {
-      if (err instanceof HttpException) {
-        throw err; // rethrow original HttpException with correct status
-      }
-      throw new HttpException('Internal Server Error', 500);
-    }
+   
+
   }
 
   @Post()
@@ -79,7 +71,7 @@ export class ChatroomController {
     },
     @Headers('request_email') email: string,
   ) {
-    try {
+
       if (!body) throw new HttpException('Body is required', 400);
 
       const user = await db.user.findUnique({
@@ -110,12 +102,7 @@ export class ChatroomController {
         throw new HttpException(message, status);
       }
       return { message, status, ...rest };
-    } catch (err) {
-      if (err instanceof HttpException) {
-        throw err; // rethrow original HttpException with correct status
-      }
-      throw new HttpException('Internal Server Error', 500);
-    }
+
   }
 
   @Get('/search')
@@ -123,7 +110,6 @@ export class ChatroomController {
     @Query() query: { search: string },
     @Headers('authorization') accessToken: string,
   ) {
-    try {
       const user = await this.util.getUser({ accessToken });
       if (user == null) throw new HttpException('Token expired', 401);
       const { email } = user;
@@ -138,12 +124,6 @@ export class ChatroomController {
         throw new HttpException(message, status);
       }
       return { message, status, ...rest };
-    } catch (err) {
-      if (err instanceof HttpException) {
-        throw err; // rethrow original HttpException with correct status
-      }
-      throw new HttpException('Internal Server Error', 500);
-    }
   }
 
   @Get('/:id/invitecode')
@@ -151,7 +131,7 @@ export class ChatroomController {
     @Param() param: { id: string },
     @Headers('authorization') accessToken: string,
   ) {
-    try {
+
       const user = await this.util.getUser({ accessToken });
       if (user == null) throw new HttpException('Token expired', 401);
       const { email } = user;
@@ -166,11 +146,6 @@ export class ChatroomController {
         throw new HttpException(message, status);
       }
       return { message, status, ...rest };
-    } catch (err) {
-      if (err instanceof HttpException) {
-        throw err; // rethrow original HttpException with correct status
-      }
-      throw new HttpException('Internal Server Error', 500);
-    }
+
   }
 }

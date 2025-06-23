@@ -38,6 +38,7 @@ export enum CLIENT_EVENT {
 
   CLIENT_ADD_ADMIN = 'client.admin.add',
   CLIENT_REMOVE_ADMIN = 'client.admin.remove',
+  CLIENT_LEAVE_ADMIN = 'client.admin.leave',
 
   CLIENT_NEW_CHATROOM = 'client.chatroom.new',
 }

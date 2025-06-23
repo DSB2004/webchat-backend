@@ -11,6 +11,7 @@ export class ParticipantGateway {
 
   async notifyJoinPariticipant(payload: any) {
     console.log('message:', payload);
+    await this.util.purgeCache(payload.chatroomId);
     await this.util.broadcastToParticipants({
       client: null,
       event: CLIENT_EVENT.CLIENT_JOIN_PARTICIPANT,
@@ -23,6 +24,7 @@ export class ParticipantGateway {
 
   async notifyRemovePariticipant(payload: any) {
     console.log('message:', payload);
+    await this.util.purgeCache(payload.chatroomId);
     await this.util.broadcastToParticipants({
       client: null,
       event: CLIENT_EVENT.CLIENT_REMOVE_PARTICIPANT,
@@ -34,6 +36,7 @@ export class ParticipantGateway {
 
   async notifyAddPariticipant(payload: any) {
     console.log('message:', payload);
+    await this.util.purgeCache(payload.chatroomId);
     await this.util.broadcastToParticipants({
       client: null,
       event: CLIENT_EVENT.CLIENT_ADD_PARTICIPANT,
@@ -45,6 +48,7 @@ export class ParticipantGateway {
 
   async notifyLeftPariticipant(payload: any) {
     console.log('message:', payload);
+    await this.util.purgeCache(payload.chatroomId);
     await this.util.broadcastToParticipants({
       client: null,
       event: CLIENT_EVENT.CLIENT_LEAVE_PARTICIPANT,
@@ -55,6 +59,7 @@ export class ParticipantGateway {
   }
   async notifyChatroomCreate(payload: any) {
     console.log('message:', payload);
+    await this.util.purgeCache(payload.chatroomId);
     await this.util.broadcastToParticipants({
       client: null,
       event: CLIENT_EVENT.CLIENT_CHATROOM_CREATED,

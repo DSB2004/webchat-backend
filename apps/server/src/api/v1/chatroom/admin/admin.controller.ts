@@ -19,54 +19,65 @@ export class AdminController {
   async addAdmins(
     @Param('chatroomId') chatroomId: string,
     @Headers('authorization') accessToken: string,
-    @Body() body: { admins: string[]; admin: string },
+    @Body() body: { admins: string[] },
   ) {
-    try {
-      const user = await this.util.getUser({ accessToken });
-      if (!user) throw new HttpException('Unauthorized', 401);
+    const user = await this.util.getUserInfo({ accessToken });
+    if (!user) throw new HttpException('Unauthorized', 401);
 
-      const { admins, admin } = body;
+    const { admins } = body;
+    if (!admins) throw new HttpException('admins list is required', 400);
+    const { status, message } = await this.adminService.addAdmin({
+      chatroomId,
+      adminIds: admins,
+      adminId: user.id,
+    });
 
-      const { status, message } = await this.adminService.addAdmin({
-        chatroomId,
-        adminIds: admins,
-        adminId: admin,
-      });
-
-      if (status !== 200) {
-        throw new HttpException(message, status);
-      }
-
-      return { status, message };
-    } catch (err) {
-      throw new HttpException('Internal Server Error', 500);
+    if (status !== 200) {
+      throw new HttpException(message, status);
     }
+
+    return { status, message };
   }
 
   @Patch('/remove/:chatroomId')
   async removeAdmins(
     @Param('chatroomId') chatroomId: string,
     @Headers('authorization') accessToken: string,
-    @Body() body: { admins: string[]; admin: string },
+    @Body() body: { admins: string[] },
   ) {
-    try {
-      const user = await this.util.getUser({ accessToken });
-      if (!user) throw new HttpException('Unauthorized', 401);
+    const user = await this.util.getUserInfo({ accessToken });
+    if (!user) throw new HttpException('Unauthorized', 401);
 
-      const { admins, admin } = body;
+    const { admins } = body;
+    if (!admins) throw new HttpException('admins list is required', 400);
+    const { status, message } = await this.adminService.removeAdmin({
+      chatroomId,
+      adminIds: admins,
+      adminId: user.id,
+    });
 
-      const { status, message } = await this.adminService.removeAdmin({
-        chatroomId,
-        adminIds: admins,
-        adminId: admin,
-      });
-
-      if (status !== 200) {
-        throw new HttpException(message, status);
-      }
-      return { status, message };
-    } catch (err) {
-      throw new HttpException('Internal Server Error', 500);
+    if (status !== 200) {
+      throw new HttpException(message, status);
     }
+    return { status, message };
+  }
+
+  @Patch('/leave/:chatroomId')
+  async leaveAdmins(
+    @Param('chatroomId') chatroomId: string,
+    @Headers('authorization') accessToken: string,
+  ) {
+    const user = await this.util.getUserInfo({ accessToken });
+    if (!user) throw new HttpException('Unauthorized', 401);
+
+    const { status, message } = await this.adminService.leaveAdmin({
+      chatroomId,
+      adminId: user.id,
+    });
+
+    if (status !== 200) {
+      throw new HttpException(message, status);
+    }
+    return { status, message };
   }
 }
