@@ -1,4 +1,4 @@
-import { MessageType, AttachmentType } from "@webchat-backend/db";
+import { MessageType, AttachmentType, ChatroomType } from "@webchat-backend/db";
 
 export interface MessaageAESKeyType {
   userId: string;
@@ -18,7 +18,7 @@ export interface Message {
   chatroomId: string;
   type: MessageType;
   content: string;
-
+  chatroomType: ChatroomType;
   attachments: Attachment[];
   aesKeys: MessaageAESKeyType[];
 }

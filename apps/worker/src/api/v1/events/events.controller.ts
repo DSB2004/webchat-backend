@@ -1,11 +1,11 @@
-import { Controller, HttpException, Patch, Body } from '@nestjs/common';
+import { Controller, HttpException, Body, Post } from '@nestjs/common';
 import { EventsProducer } from './events.producer';
 import { EventParams, StatusParams, ReactionParams } from 'src/app.types';
 @Controller('events')
 export class EventsController {
   constructor(private readonly producer: EventsProducer) {}
 
-  @Patch('status')
+  @Post('status')
   async addUpdateStatus(@Body() body: StatusParams) {
     try {
       const { messageId, userId, status: userStatus, chatroomId } = body;
@@ -23,7 +23,7 @@ export class EventsController {
     }
   }
 
-  @Patch('reaction')
+  @Post('reaction')
   async addUpdateReaction(@Body() body: ReactionParams) {
     try {
       const { messageId, userId, label, reaction, chatroomId } = body;
@@ -41,7 +41,7 @@ export class EventsController {
     }
   }
 
-  @Patch('pin')
+  @Post('pin')
   async togglePin(@Body() body: EventParams) {
     try {
       const { messageId, userId, chatroomId } = body;
@@ -59,7 +59,7 @@ export class EventsController {
     }
   }
 
-  @Patch('star')
+  @Post('star')
   async toggleStar(@Body() body: EventParams) {
     try {
       const { messageId, userId, chatroomId } = body;

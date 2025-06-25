@@ -5,9 +5,10 @@ import { ChatProducer } from './chat.producer';
 export class ChatController {
   constructor(private readonly chat: ChatProducer) {}
 
-  @Post()
+  @Post('add')
   async addMessage(@Body() body: Message) {
     try {
+      
       const { id, content, authorId, chatroomId, type } = body;
       if (!id || !content || !authorId || !chatroomId || !type)
         throw new HttpException('Parameter missing', 400);
@@ -20,7 +21,7 @@ export class ChatController {
       throw new HttpException('Internal Server Error', 500);
     }
   }
-  @Patch('update')
+  @Post('update')
   async updateMessage(
     @Body() body: { userId: string; messageId: string; content: string },
   ) {
@@ -40,7 +41,7 @@ export class ChatController {
     }
   }
 
-  @Patch('delete')
+  @Post('delete')
   async deleteMessage(@Body() body: { userId: string; messageId: string }) {
     try {
       const { userId, messageId } = body;

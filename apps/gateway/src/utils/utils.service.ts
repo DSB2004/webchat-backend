@@ -5,11 +5,13 @@ import { CLIENT_EVENT } from 'src/app.types';
 import { redis } from '@webchat-backend/redis';
 import { VerifyJWT } from '@webchat-backend/jwt';
 import { TokenType } from '@webchat-backend/types';
+import axios from 'axios';
 @Injectable()
 export class UtilsService {
   private SOCKET_USER_KEY = 'socket-to-user';
   private USER_SOCKET_KEY = 'user-to-socket';
   private CHATROOM_PARTICIPANT_LIST_KEY = 'chatroom-participants:';
+  private BLOCK_USER_MAP_KEY = 'blocked-user';
   async connectUser({
     userId,
     socketId,
@@ -162,6 +164,84 @@ export class UtilsService {
       if (!client || user.socketId !== client.id) {
         server.to(user.socketId).emit(event, payload);
       }
+    }
+  }
+  async broadcastToUser({
+    client,
+    server,
+    event,
+    payload,
+    userId,
+  }: {
+    client: Socket | null;
+    server: Server;
+    userId: string;
+    event: CLIENT_EVENT;
+    payload: any;
+  }) {
+    const user = await this.getUser({ userId }).then((userSocketId) => {
+      return { id: userId, socketId: userSocketId };
+    });
+
+    if (!user.socketId) {
+      // send fallback notification
+      return;
+    }
+
+    if (!client || user.socketId !== client.id) {
+      server.to(user.socketId).emit(event, payload);
+    }
+  }
+  private readonly workerAxios = axios.create();
+  async makeWorkerRequest(url: string, payload: any) {
+    await this.workerAxios.post(url, payload);
+  }
+
+  async checkOwnership({
+    userId,
+    messageId,
+  }: {
+    userId: string;
+    messageId: string;
+  }) {
+    const cache = await redis.get(`${messageId}:${userId}`);
+    if (cache != null) return JSON.parse(cache) as boolean;
+    const res =
+      (await db.message.findUnique({
+        where: {
+          id: messageId,
+          authorId: userId,
+        },
+      })) != null;
+    await redis.set(`${messageId}:${userId}`, JSON.stringify(res));
+    return res;
+  }
+
+  async getUserId({ client }: { client: Socket }) {
+    const token = client.handshake.headers?.auth as string;
+    const user = await this.getUserfromDB({ accessToken: token });
+    if (!user) {
+      client.disconnect();
+      return null;
+    }
+    const { id } = user;
+    return id as string | null;
+  }
+
+  async checkBlockUser({ senderId, receiverId }) {
+    try {
+      return (
+        (await db.block.findUnique({
+          where: {
+            blockedId_blockerId: {
+              blockedId: senderId,
+              blockerId: receiverId,
+            },
+          },
+        })) != null
+      );
+    } catch (err) {
+      return false;
     }
   }
 }

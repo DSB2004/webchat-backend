@@ -25,6 +25,7 @@
         "@webchat-backend/jwt": "workspace:*",
         "@webchat-backend/redis": "workspace:*",
         "@webchat-backend/types": "workspace:*",
+        "axios": "^1.10.0",
         "reflect-metadata": "^0.2.2",
         "rxjs": "^7.8.1",
         "socket.io": "^4.8.1",

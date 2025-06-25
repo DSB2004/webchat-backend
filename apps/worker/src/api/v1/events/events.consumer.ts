@@ -5,16 +5,15 @@ import { EventsService } from './events.service';
 import { EventParams } from 'src/app.types';
 import { UtilService } from 'src/util/util.service';
 import { KAFKA_EVENTS } from 'src/app.types';
-import { PubService } from 'src/redis/pub/pub.service';
 import { StatusParams, ReactionParams } from 'src/app.types';
-import { EventPublsiher } from './event.publisher';
+import { EventPublisher } from './event.publisher';
 @Injectable()
 export class EventsConsumer implements OnModuleInit {
   constructor(
     private readonly consumer: ConsumerService,
     private readonly event: EventsService,
     private readonly util: UtilService,
-    private readonly publisher: EventPublsiher,
+    private readonly publisher: EventPublisher,
   ) {}
 
   async onModuleInit() {

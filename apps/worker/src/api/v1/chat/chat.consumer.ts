@@ -3,7 +3,6 @@ import { KAFKA_EVENTS } from 'src/app.types';
 import { ConsumerService } from 'src/kafka/consumer/consumer.service';
 import { ChatService } from './chat.service';
 import { Message } from '@webchat-backend/types';
-import { ChatPublsiher } from './chat.publisher';
 interface ConsumerMessage {
   event: KAFKA_EVENTS;
   data: Message;
@@ -14,7 +13,6 @@ export class ChatConsumer implements OnModuleInit {
   constructor(
     private readonly consumer: ConsumerService,
     private readonly chat: ChatService,
-    
   ) {}
 
   async onModuleInit() {

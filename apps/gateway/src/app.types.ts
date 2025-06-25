@@ -5,7 +5,9 @@ export enum SERVER_EVENT {
   SERVER_UPDATE_MESSAGE = 'server.message.update',
   SERVER_CLEAR_MESSAGE = 'server.message.clear',
   SERVER_STATUS_MESSAGE = 'server.message.status',
-
+  SERVER_REACTION_MESSAGE = 'server.message.reaction',
+  SERVER_STAR_MESSAGE = 'server.message.starred',
+  SERVER_PIN_MESSAGE = 'server.message.pinned',
   SERVER_USER_BLOCK = 'server.user.block',
   SERVER_USER_UNBLOCK = 'server.user.unblock',
 
@@ -25,11 +27,15 @@ export enum CLIENT_EVENT {
   CLIENT_DELETE_MESSAGE = 'client.message.delete',
   CLIENT_UPDATE_MESSAGE = 'client.message.update',
   CLIENT_CLEAR_MESSAGE = 'client.message.clear',
-  CLIENT_STATUS_MESSAGE = 'server.message.status',
+  CLIENT_STATUS_MESSAGE = 'client.message.status',
+  CLIENT_REACTION_MESSAGE = 'client.message.reaction',
+  CLIENT_STAR_MESSAGE = 'client.message.starred',
+  CLIENT_PIN_MESSAGE = 'client.message.pinned',
 
   CLIENT_CHATROOM_CREATED = 'client.chatroom.created',
   CLIENT_USER_BLOCK = 'client.user.block',
   CLIENT_USER_UNBLOCK = 'client.user.unblock',
+  CLIENT_ERROR = 'ciient.error',
 
   CLIENT_ADD_PARTICIPANT = 'client.participant.add',
   CLIENT_REMOVE_PARTICIPANT = 'client.participant.remove',

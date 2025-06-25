@@ -2,12 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { db } from '@webchat-backend/db';
 import { Message } from '@webchat-backend/types';
 import { UtilService } from 'src/util/util.service';
-import { ChatPublsiher } from './chat.publisher';
+import { ChatPublisher } from './chat.publisher';
 @Injectable()
 export class ChatService {
   constructor(
     private readonly util: UtilService,
-    private readonly publisher: ChatPublsiher,
+    private readonly publisher: ChatPublisher,
   ) {}
   async addMessage({ message }: { message: Message }) {
     const { attachments, aesKeys, ...rest } = message;
@@ -118,10 +118,10 @@ export class ChatService {
         await tx.message.update({
           where: {
             id: messageId,
-            isUpdated: true,
           },
           data: {
             content,
+            isUpdated: true,
           },
         });
       });

@@ -2,15 +2,15 @@ import { Module } from '@nestjs/common';
 import { ChatProducer } from './chat.producer';
 import { ChatController } from './chat.controller';
 import { ChatConsumer } from './chat.consumer';
-import { KafkaModule } from 'src/kafka/kafka.module';
 import { ProducerModule } from 'src/kafka/producer/producer.module';
 import { ConsumerModule } from 'src/kafka/consumer/consumer.module';
 import { ChatService } from './chat.service';
 import { UtilModule } from 'src/util/util.module';
-import { ChatPublsiher } from './chat.publisher';
+import { ChatPublisher } from './chat.publisher';
+import { PubModule } from 'src/redis/pub/pub.module';
 @Module({
-  imports: [ProducerModule, ConsumerModule, UtilModule],
-  providers: [ChatProducer, ChatConsumer, ChatService, ChatPublsiher],
+  imports: [ProducerModule, ConsumerModule, PubModule, UtilModule],
+  providers: [ChatProducer, ChatConsumer, ChatService, ChatPublisher],
   controllers: [ChatController],
 })
 export class ChatModule {}

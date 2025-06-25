@@ -4,17 +4,20 @@ import { Kafka } from 'kafkajs';
 @Injectable()
 export class AdminService implements OnModuleInit {
   private readonly kafka = new Kafka({
-    brokers: [process.env.KAFKA_BROKER_URL as string ||"localhost:9092"],
+    brokers: [process.env.KAFKA_BROKER_URL || 'localhost:9092'],
   });
-  private readonly topics:any[]=[
+
+  private readonly topics: any[] = [
     {
-        topic:"chat-message", 
-        numPartitions: 3,
-        replicationFactor: 1,
-    }]
+      topic: 'chat-message',
+      numPartitions: 3,
+      replicationFactor: 1,
+    },
+  ];
 
   async onModuleInit() {
-    if (process.env.NODE_ENV !== 'development') return; 
+    console.log(process.env.NODE_ENV);
+    if (process.env.NODE_ENV !== 'development') return;
     const admin = this.kafka.admin();
     await admin.connect();
 
@@ -23,12 +26,18 @@ export class AdminService implements OnModuleInit {
     const topicsToCreate = this.topics
       .filter((topic) => !existingTopics.includes(topic.topic))
       .map((topic) => ({
-     ...topic
+        ...topic,
       }));
 
     if (topicsToCreate.length > 0) {
-      await admin.createTopics({ topics: topicsToCreate });
-      console.log(`✅ Kafka topics created:`, topicsToCreate.map(t => t.topic));
+      await admin.createTopics({
+        topics: topicsToCreate,
+        waitForLeaders: true,
+      });
+      const metadata = await admin.fetchTopicMetadata({
+        topics: ['chat-message'],
+      });
+      console.log(JSON.stringify(metadata, null, 2));
     } else {
       console.log(`⚠️ Kafka topics already exist:`, existingTopics);
     }
