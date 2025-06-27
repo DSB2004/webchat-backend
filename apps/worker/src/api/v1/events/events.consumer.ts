@@ -1,12 +1,16 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { ConsumerMessage } from 'src/app.types';
+import {
+  ConsumerMessage,
+  KAFKA_EVENTS,
+  EventParams,
+  StatusParams,
+  ReactionParams,
+} from 'src/app.types';
 import { ConsumerService } from 'src/kafka/consumer/consumer.service';
 import { EventsService } from './events.service';
-import { EventParams } from 'src/app.types';
 import { UtilService } from 'src/util/util.service';
-import { KAFKA_EVENTS } from 'src/app.types';
-import { StatusParams, ReactionParams } from 'src/app.types';
 import { EventPublisher } from './event.publisher';
+
 @Injectable()
 export class EventsConsumer implements OnModuleInit {
   constructor(
@@ -18,39 +22,63 @@ export class EventsConsumer implements OnModuleInit {
 
   async onModuleInit() {
     await this.consumer.consume(
+      'webchat-chat-events',
       { topics: ['chat-events'] },
       {
         eachMessage: async ({ topic, partition, message }) => {
-          const messageJSON =
-            (JSON.parse(
-              message.value?.toString() || '{}',
-            ) as ConsumerMessage<EventParams>) || null;
-          null;
+          try {
+            const rawValue = message.value?.toString();
+            if (!rawValue) {
+              console.warn('⚠️ Empty message received');
+              return;
+            }
 
-          if (!messageJSON || messageJSON === null) {
-            console.warn('Message Body Required');
-            return;
-          }
+            const parsed: ConsumerMessage = JSON.parse(rawValue);
 
-          const { event, data } = messageJSON;
+            if (!parsed || !parsed.event || !parsed.messageId) {
+              console.warn('⚠️ Invalid event message format', parsed);
+              return;
+            }
 
-          const { messageId } = data;
-          if (!(await this.util.checkMessageExist(messageId))) {
-            this.publisher.registerNewEvent(messageJSON);
-            console.warn(
-              '[EVENT] Message object not found...pushing to pub/sub',
+            const { event, messageId, chatroomId } = parsed;
+
+            console.log(
+              `📨 Event: ${event} | Partition: ${partition} | Topic: ${topic}`,
             );
-          }
 
-          console.log(message.value?.toString(), topic, partition);
-          if (event === KAFKA_EVENTS.MESSAGE_REACTION) {
-            await this.event.addUpdateReaction(data as ReactionParams);
-          } else if (event === KAFKA_EVENTS.MESSAGE_STATUS) {
-            await this.event.addUpdateStatus(data as StatusParams);
-          } else if (event === KAFKA_EVENTS.MESSAGE_PINNED) {
-            await this.event.tooglePin(data);
-          } else if (event === KAFKA_EVENTS.MESSAGE_STARRED) {
-            await this.event.toogleStar(data);
+            const messageExists = await this.util.checkMessageExist(messageId);
+            if (!messageExists) {
+              console.warn(
+                '[EVENT] Message not found. Registering for pub/sub...',
+              );
+              this.publisher.registerNewEvent(parsed);
+              return;
+            }
+
+            switch (event) {
+              case KAFKA_EVENTS.MESSAGE_REACTION:
+                // @ts-ignore
+                await this.event.addUpdateReaction(parsed as ReactionParams);
+                break;
+
+              case KAFKA_EVENTS.MESSAGE_STATUS:
+                // @ts-ignore
+                await this.event.addUpdateStatus(parsed as StatusParams);
+                break;
+
+              case KAFKA_EVENTS.MESSAGE_PINNED:
+                await this.event.tooglePin(parsed);
+                break;
+
+              case KAFKA_EVENTS.MESSAGE_STARRED:
+                await this.event.toogleStar(parsed);
+                break;
+
+              default:
+                console.warn(`⚠️ Unknown event type: ${event}`);
+            }
+          } catch (err) {
+            console.error('❌ Failed to process Kafka message:', err);
           }
         },
       },

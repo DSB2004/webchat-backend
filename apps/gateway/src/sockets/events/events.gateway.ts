@@ -63,6 +63,7 @@ export class EventsGateway {
 
     const { chatroomType, receiverId } = payload;
 
+   
     const shouldValidateBlock =
       typeof chatroomType !== 'undefined' &&
       typeof payload.chatroomId === 'string';

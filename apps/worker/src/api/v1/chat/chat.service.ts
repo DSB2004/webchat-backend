@@ -9,43 +9,60 @@ export class ChatService {
     private readonly util: UtilService,
     private readonly publisher: ChatPublisher,
   ) {}
-  async addMessage({ message }: { message: Message }) {
-    const { attachments, aesKeys, ...rest } = message;
+  async addMessage({ message }: { message: { userId: string } & Message }) {
+    const { attachments, aesKeys, content, type, userId, chatroomId, id } =
+      message;
+
     try {
-      if (
-        !(await this.util.checkChatroomPermission({
-          userId: message.authorId,
-          chatroomId: message.chatroomId,
-        }))
-      ) {
-        console.warn('Skip processing due to permission error.');
+      const hasPermission = await this.util.checkChatroomPermission({
+        userId: userId,
+        chatroomId: message.chatroomId,
+      });
+
+      if (!hasPermission) {
+        console.warn('[CHAT] Permission denied. Skipping message processing.');
         return;
       }
+
       const messageId = await db.$transaction(async (tx) => {
         const createdMessage = await tx.message.create({
           data: {
-            ...rest,
+            id,
+            chatroomId,
+            authorId: userId,
+            content,
+            type,
           },
         });
-        const messageId = createdMessage.id;
-        await tx.messageAESKey.createMany({
-          data: aesKeys.map((key) => ({
-            ...key,
-            messageId,
-          })),
-        });
-        await tx.attachment.createMany({
-          data: attachments.map((att) => ({
-            ...att,
-            messageId,
-          })),
-        });
-        return messageId;
+
+        const mid = createdMessage.id;
+
+        if (aesKeys.length) {
+          await tx.messageAESKey.createMany({
+            data: aesKeys.map((key) => ({ ...key, messageId: mid })),
+          });
+        }
+
+        if (attachments.length) {
+          await tx.attachment.createMany({
+            data: attachments.map((att) => ({ ...att, messageId: mid })),
+          });
+        }
+
+        return mid;
       });
 
       await this.publisher.executeEvent(messageId);
-    } catch (err) {
-      console.error('[CHAT] Error creating new message', err);
+    } catch (err: unknown) {
+      // Smart error handling
+      if (err instanceof Error) {
+        console.error('[CHAT] Failed to create new message:', err.message);
+        console.error('[CHAT] Stack:', err.stack);
+      } else {
+        console.error('[CHAT] Unknown error:', err);
+      }
+
+      // Optional: rethrow or handle
       throw new Error('Failed to send message');
     }
   }
@@ -68,26 +85,40 @@ export class ChatService {
         return;
       }
       await db.$transaction(async (tx) => {
-        await tx.message.delete({
+        // await tx.message.delete({
+        //   where: {
+        //     id: messageId,
+        //   },
+        // });
+
+        await tx.message.update({
           where: {
             id: messageId,
           },
-        });
-        await tx.status.deleteMany({
-          where: {
-            messageId,
+          data: {
+            isDeleted: true,
           },
-        });
-        await tx.messageAESKey.deleteMany({
-          where: {
-            messageId,
-          },
-        });
-        await tx.attachment.deleteMany({
-          where: {
-            messageId,
-          },
-        });
+        }); 
+
+        // Sent messages will be stored for 1 month will seen messages are deleted after 24 hours and deliveried are deleted after 7 days 
+  
+
+        
+        // await tx.status.deleteMany({
+        //   where: {
+        //     messageId,
+        //   },
+        // });
+        // await tx.messageAESKey.deleteMany({
+        //   where: {
+        //     messageId,
+        //   },
+        // });
+        // await tx.attachment.deleteMany({
+        //   where: {
+        //     messageId,
+        //   },
+        // });
       });
     } catch (err) {
       console.error('[CHAT] Error creating new message', err);

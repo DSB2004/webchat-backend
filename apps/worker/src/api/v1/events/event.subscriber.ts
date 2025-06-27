@@ -15,7 +15,7 @@ export class EventSubscriber implements OnModuleInit {
 
   private async fetchMessageEvents(
     messageId: string,
-  ): Promise<ConsumerMessage<EventParams>[]> {
+  ): Promise<ConsumerMessage[]> {
     const key = this.REDIS_KEY(messageId);
     const items = await redis.lrange(key, 0, -1);
     return items.map((item) => JSON.parse(item));
@@ -25,8 +25,8 @@ export class EventSubscriber implements OnModuleInit {
     await redis.del(key);
   }
 
-  private async registerMessageEvent(data: ConsumerMessage<EventParams>) {
-    const key = this.REDIS_KEY(data.data.messageId);
+  private async registerMessageEvent(data: ConsumerMessage) {
+    const key = this.REDIS_KEY(data.messageId);
     await redis.rpush(key, JSON.stringify(data));
   }
 
@@ -34,16 +34,16 @@ export class EventSubscriber implements OnModuleInit {
     try {
       const eventList = await this.fetchMessageEvents(id);
       for (const event_ of eventList) {
-        const { data, event } = event_;
+        const { event } = event_;
         switch (event) {
           case KAFKA_EVENTS.MESSAGE_REACTION:
-            await this.producer.addOrUpdateReaction({ message: data });
+            await this.producer.addOrUpdateReaction({ message: event_ });
           case KAFKA_EVENTS.MESSAGE_STATUS:
-            await this.producer.addOrUpdateStatus({ message: data });
+            await this.producer.addOrUpdateStatus({ message: event_ });
           case KAFKA_EVENTS.MESSAGE_STARRED:
-            await this.producer.toggleStarred({ message: data });
+            await this.producer.toggleStarred({ message: event_ });
           case KAFKA_EVENTS.MESSAGE_PINNED:
-            await this.producer.tooglePinned({ message: data });
+            await this.producer.tooglePinned({ message: event_ });
         }
         await this.clearMessageEvents(id);
         return true;

@@ -5,13 +5,9 @@ import {
   ConsumerSubscribeTopics,
   Kafka,
 } from 'kafkajs';
-
+import { kafka } from '../kafka';
 @Injectable()
 export class ConsumerService implements OnApplicationShutdown {
-  private readonly kafka = new Kafka({
-    brokers: [process.env.KAFKA_BROKER_URL || 'localhost:9092'],
-  });
-
   private readonly consumers: Consumer[] = [];
 
   async onApplicationShutdown(signal?: string) {
@@ -19,8 +15,16 @@ export class ConsumerService implements OnApplicationShutdown {
       await consumer.disconnect();
     }
   }
-  async consume(topic: ConsumerSubscribeTopics, config: ConsumerRunConfig) {
-    const consumer = this.kafka.consumer({ groupId: 'webchat-app' });
+  async consume(
+    groupId: string,
+    topic: ConsumerSubscribeTopics,
+    config: ConsumerRunConfig,
+  ) {
+    const consumer = kafka.consumer({
+      groupId,
+      // sessionTimeout: 10000,
+      // heartbeatInterval: 3000,
+    });
     await consumer.connect();
     await consumer.subscribe(topic);
     await consumer.run(config);

@@ -56,7 +56,7 @@ export class EventsService {
         create: {
           messageId: params.messageId,
           userId: params.userId,
-          status: StatusType.PENDING,
+          status: params.status || StatusType.PENDING,
         },
       });
     } catch (err) {

@@ -19,10 +19,8 @@ export interface EventParams {
   chatroomId: string;
 }
 
-export interface ConsumerMessage<T> {
+export interface ConsumerMessage extends EventParams {
   event: KAFKA_EVENTS;
-  data: T;
-  userId: string;
 }
 
 export interface StatusParams extends EventParams {

@@ -3,11 +3,13 @@ import { KAFKA_EVENTS } from 'src/app.types';
 import { ConsumerService } from 'src/kafka/consumer/consumer.service';
 import { ChatService } from './chat.service';
 import { Message } from '@webchat-backend/types';
-interface ConsumerMessage {
+
+interface ConsumerMessage extends Message {
   event: KAFKA_EVENTS;
-  data: Message;
   userId: string;
+  messageId?: string;
 }
+
 @Injectable()
 export class ChatConsumer implements OnModuleInit {
   constructor(
@@ -17,35 +19,60 @@ export class ChatConsumer implements OnModuleInit {
 
   async onModuleInit() {
     await this.consumer.consume(
+      'webchat-chat-messages',
       { topics: ['chat-message'] },
       {
         eachMessage: async ({ topic, partition, message }) => {
-          const messageJSON =
-            (JSON.parse(
-              message.value?.toString() || '{}',
-            ) as ConsumerMessage) || null;
-          null;
-          if (!messageJSON || messageJSON === null) {
-            console.warn('Message Body Required');
-            return;
-          }
-          const { event } = messageJSON;
-          console.log(message.value?.toString(), topic, partition);
-          if (event === KAFKA_EVENTS.MESSAGE_CREATE) {
-            this.chat.addMessage({
-              message: messageJSON.data,
-            });
-          } else if (event === KAFKA_EVENTS.MESSAGE_DELETE) {
-            this.chat.deleteMessage({
-              messageId: messageJSON.data.id,
-              userId: messageJSON.userId,
-            });
-          } else if (event === KAFKA_EVENTS.MESSAGE_UPDATE) {
-            this.chat.updateMessage({
-              messageId: messageJSON.data.id,
-              userId: messageJSON.userId,
-              content: messageJSON.data.content,
-            });
+          try {
+            const rawValue = message.value?.toString();
+            if (!rawValue) {
+              console.warn('⚠️ Empty message payload received');
+              return;
+            }
+            const parsed: ConsumerMessage = JSON.parse(rawValue);
+            console.log(parsed);
+
+            if (
+              !parsed.event ||
+              (parsed.event === KAFKA_EVENTS.MESSAGE_CREATE && !parsed.id) ||
+              !parsed.messageId
+            ) {
+              console.warn('⚠️ Invalid message structure', parsed);
+              return;
+            }
+
+            console.log(
+              `📨 Received event ${parsed.event} on topic '${topic}', partition ${partition}`,
+            );
+
+            const { event, userId, id, messageId } = parsed;
+
+            switch (event) {
+              case KAFKA_EVENTS.MESSAGE_CREATE:
+                await this.chat.addMessage({ message: parsed });
+                break;
+
+              case KAFKA_EVENTS.MESSAGE_DELETE:
+                await this.chat.deleteMessage({
+                  messageId,
+                  userId,
+                });
+                break;
+
+              case KAFKA_EVENTS.MESSAGE_UPDATE:
+                await this.chat.updateMessage({
+                  messageId,
+                  userId,
+                  content: parsed.content,
+                });
+                break;
+
+              default:
+                console.warn(`⚠️ Unhandled event type: ${event}`);
+                break;
+            }
+          } catch (err) {
+            console.error('❌ Error processing message:', err);
           }
         },
       },

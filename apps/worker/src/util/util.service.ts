@@ -28,7 +28,7 @@ export class UtilService {
       });
 
       return (
-        chatroom?.participants?.some((user) => user.id === userId) ?? false
+        chatroom?.participants?.some((user) => user.userId === userId) ?? false
       );
     } catch (err) {
       console.error('checkChatroomPermission error', err);
@@ -100,5 +100,4 @@ export class UtilService {
       return false;
     }
   }
-
 }

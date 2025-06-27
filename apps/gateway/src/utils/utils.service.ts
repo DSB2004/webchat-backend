@@ -6,6 +6,8 @@ import { redis } from '@webchat-backend/redis';
 import { VerifyJWT } from '@webchat-backend/jwt';
 import { TokenType } from '@webchat-backend/types';
 import axios from 'axios';
+import { Axios } from 'axios';
+import { StatusType } from '@webchat-backend/db';
 @Injectable()
 export class UtilsService {
   private SOCKET_USER_KEY = 'socket-to-user';
@@ -192,9 +194,19 @@ export class UtilsService {
       server.to(user.socketId).emit(event, payload);
     }
   }
-  private readonly workerAxios = axios.create();
+  private readonly workerAxios: Axios = axios.create({
+    baseURL: (process.env.WORKER_URL as string) || 'http://localhost:3002',
+    headers: {
+      INTERNAL_API_KEY: process.env.INTERNAL_API_KEY,
+    },
+  });
   async makeWorkerRequest(url: string, payload: any) {
-    await this.workerAxios.post(url, payload);
+    try {
+      console.log(process.env.WORKER_URL);
+      await this.workerAxios.post(url, payload);
+    } catch (err) {
+      console.error('Error while sending request', err);
+    }
   }
 
   async checkOwnership({
@@ -230,17 +242,52 @@ export class UtilsService {
 
   async checkBlockUser({ senderId, receiverId }) {
     try {
-      return (
-        (await db.block.findUnique({
-          where: {
-            blockedId_blockerId: {
-              blockedId: senderId,
-              blockerId: receiverId,
-            },
+      const res = await db.block.findUnique({
+        where: {
+          blockedId_blockerId: {
+            blockedId: senderId,
+            blockerId: receiverId,
           },
-        })) != null
-      );
+        },
+      });
+      return res != null;
     } catch (err) {
+      return false;
+    }
+  }
+  private readonly statusRank: Record<StatusType, number> = {
+    PENDING: 0,
+    SENT: 1,
+    DELIVERED: 2,
+    SEEN: 3,
+  };
+  async checkStatusRanking({
+    status,
+    messageId,
+    userId,
+  }: {
+    status: StatusType;
+    messageId: string;
+    userId: string;
+  }): Promise<boolean> {
+    try {
+      const currentStatus = await db.status.findUnique({
+        where: {
+          messageId_userId: {
+            messageId,
+            userId,
+          },
+        },
+        select: {
+          status: true,
+        },
+      });
+
+      if (!currentStatus) return true;
+
+      return this.statusRank[status] >= this.statusRank[currentStatus.status];
+    } catch (err) {
+      console.error('checkStatusRanking error', err);
       return false;
     }
   }

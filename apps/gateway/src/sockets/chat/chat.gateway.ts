@@ -22,6 +22,7 @@ export class ChatGateway {
     chatroomType: ChatroomType,
     receiverId?: string,
   ): Promise<boolean> {
+    console.log('hellow');
     if (
       !chatroomType ||
       (chatroomType === ChatroomType.PERSONAL && !receiverId)
@@ -31,11 +32,11 @@ export class ChatGateway {
       });
       return false;
     }
-
-    if (
-      chatroomType === ChatroomType.PERSONAL &&
-      (await this.util.checkBlockUser({ senderId: userId, receiverId }))
-    ) {
+    const isBlocked = await this.util.checkBlockUser({
+      senderId: userId,
+      receiverId,
+    });
+    if (chatroomType === ChatroomType.PERSONAL && isBlocked) {
       client.emit(CLIENT_EVENT.CLIENT_ERROR, {
         message: 'User has blocked you',
       });
@@ -76,10 +77,11 @@ export class ChatGateway {
       chatroomId: payload.chatroomId,
     });
 
-    await this.util.makeWorkerRequest('/chat/add', {
+    const res = await this.util.makeWorkerRequest('/chat/add', {
       ...payload,
-      authorId: id,
+      userId: id,
     });
+    console.log(res);
   }
 
   @SubscribeMessage(SERVER_EVENT.SERVER_UPDATE_MESSAGE)

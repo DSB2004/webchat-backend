@@ -12,7 +12,7 @@ export class EventsProducer {
         event: KAFKA_EVENTS.MESSAGE_PINNED,
       };
       await this.producer.produce({
-        topic: 'chat-event',
+        topic: 'chat-events',
         messages: [
           {
             key: payload.id,
@@ -33,7 +33,7 @@ export class EventsProducer {
         event: KAFKA_EVENTS.MESSAGE_STARRED,
       };
       await this.producer.produce({
-        topic: 'chat-event',
+        topic: 'chat-events',
         messages: [
           {
             key: payload.id,
@@ -54,7 +54,7 @@ export class EventsProducer {
         event: KAFKA_EVENTS.MESSAGE_STATUS,
       };
       await this.producer.produce({
-        topic: 'chat-event',
+        topic: 'chat-events',
         messages: [
           {
             key: payload.id,
@@ -75,7 +75,7 @@ export class EventsProducer {
         event: KAFKA_EVENTS.MESSAGE_REACTION,
       };
       await this.producer.produce({
-        topic: 'chat-event',
+        topic: 'chat-events',
         messages: [
           {
             key: payload.id,

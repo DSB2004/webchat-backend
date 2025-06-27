@@ -13,6 +13,7 @@ export class ChatProducer {
         ...message,
         event: KAFKA_EVENTS.MESSAGE_CREATE,
       };
+      console.log(payload);
       await this.producer.produce({
         topic: 'chat-message',
         messages: [
@@ -38,7 +39,7 @@ export class ChatProducer {
         topic: 'chat-message',
         messages: [
           {
-            key: payload.id,
+            key: payload.messageId,
             value: JSON.stringify(payload),
           },
         ],
@@ -59,7 +60,7 @@ export class ChatProducer {
         topic: 'chat-message',
         messages: [
           {
-            key: payload.id,
+            key: payload.messageId,
             value: JSON.stringify(payload),
           },
         ],

@@ -6,7 +6,7 @@ import { PubService } from 'src/redis/pub/pub.service';
 export class EventPublisher {
   constructor(private readonly publisher: PubService) {}
 
-  async registerNewEvent(message: ConsumerMessage<EventParams>) {
+  async registerNewEvent(message: ConsumerMessage) {
     return await this.publisher.publish(
       PUB_SUB_EVENT.REGISTER_EVENT,
       JSON.stringify(message),
